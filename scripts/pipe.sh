@@ -12,7 +12,7 @@ echo -e "///////////////////////////////////////////////////////////////////////
 
 
 ###	Progress bar	###
-#mkdir ./${id}
+mkdir ./${id}
 cd ./${id}
 
 total_tasks=13  # Total number of tasks, adjust this based on your actual tasks
@@ -31,11 +31,11 @@ export CUDA_VISIBLE_DEVICES=0 # Force GPU to be seen
 # Ensure exit cleans up after itself # Ensure cancleing the script doesnt leave redundant progress.txt script
 trap 'kill $PYTHON_PID 2>/dev/null; rm -f $progress_file; exit' EXIT INT TERM 
 # Setup
-#mkdir -p ./prep/bin
-#mkdir -p ./prep/filter
-#mkdir -p ./PROK/fasta
-#mkdir -p ./EUK/fasta
-#mkdir -p ./prep/RAW
+mkdir -p ./prep/bin
+mkdir -p ./prep/filter
+mkdir -p ./PROK/fasta
+mkdir -p ./EUK/fasta
+mkdir -p ./prep/RAW
 
 
 
@@ -43,17 +43,17 @@ trap 'kill $PYTHON_PID 2>/dev/null; rm -f $progress_file; exit' EXIT INT TERM
 ######		Filtration and trimming by quality		######
 echo "1,Filtering and trimming ${input_count} reads to Phred ${phred} and < ${filtered_amplicon_length}" > $progress_file
 echo "1,Filtering and trimming ${input_count} reads to Phred ${phred} and < ${filtered_amplicon_length}" >> ${log}
-#fastp \
-#--in1 "${raw_data}" \
-#--out1 ".${bb_f}/${id}_${phred}_Phred.fastq" \
-#--cut_front \
-#--cut_tail \
-#--cut_mean_quality ${phred_t} \
-#--length_required 200 \
-#--average_qual ${phred} \
-#--json ".${bb_out}/${id}_fastp_report.json" \
-#--html ".${bb_out}/${id}_fastp_report.html" \
-#>> ${log} 2>&1 || { echo "### fastp failed ###" >> "${log}"; exit 1; }
+fastp \
+--in1 "${raw_data}" \
+--out1 ".${bb_f}/${id}_${phred}_Phred.fastq" \
+--cut_front \
+--cut_tail \
+--cut_mean_quality ${phred_t} \
+--length_required 200 \
+--average_qual ${phred} \
+--json ".${bb_out}/${id}_fastp_report.json" \
+--html ".${bb_out}/${id}_fastp_report.html" \
+>> ${log} 2>&1 || { echo "### fastp failed ###" >> "${log}"; exit 1; }
 
 seq_count_raw=$(grep -c '^@' ".${bb_f}/${id}_${phred}_Phred.fastq")
 percentage_filt_retained=$(echo "scale=2; $seq_count_raw / $input_count * 100" | bc)
@@ -67,63 +67,63 @@ percentage_filt_retained=$(echo "scale=2; $seq_count_raw / $input_count * 100" |
 #####		Chimera removal		######
 echo "2,Searching for Chimeras in ${seq_count_raw} reads (${percentage_filt_retained}% retained from filtration)" > $progress_file
 echo "2,Searching for Chimeras in ${seq_count_raw} reads (${percentage_filt_retained}% retained from filtration)" >> ${log}
-#eval "$(conda shell.bash hook)"
-#conda activate "${qiime}"  || { echo "${er}ERROR:${in} Please ensure config.sh contains correct environment names${r} "; exit 1; }
+eval "$(conda shell.bash hook)"
+conda activate "${qiime}"  || { echo "${er}ERROR:${in} Please ensure config.sh contains correct environment names${r} "; exit 1; }
 
 # Manifest
-#echo -e "sample-id,absolute-filepath,direction" > manifest.csv
-#echo -e "${id},${cd}/${id}${bb_f}/${id}_${phred}_Phred.fastq,forward" >> manifest.csv
+echo -e "sample-id,absolute-filepath,direction" > manifest.csv
+echo -e "${id},${cd}/${id}${bb_f}/${id}_${phred}_Phred.fastq,forward" >> manifest.csv
 
 # Import
-#qiime tools import \
-#  --type 'SampleData[SequencesWithQuality]' \
-#  --input-path "manifest.csv" \
-#  --output-path ".${bb_f}/${id}_${phred}_Phred.qza" \
-#  --input-format SingleEndFastqManifestPhred33 \
-#  >> ${log} 2>&1
+qiime tools import \
+  --type 'SampleData[SequencesWithQuality]' \
+  --input-path "manifest.csv" \
+  --output-path ".${bb_f}/${id}_${phred}_Phred.qza" \
+  --input-format SingleEndFastqManifestPhred33 \
+  >> ${log} 2>&1
 
 # Dereplicate for computation simplicity
-#qiime vsearch dereplicate-sequences \
-#  --i-sequences ".${bb_f}/${id}_${phred}_Phred.qza" \
-#  --o-dereplicated-table ".${bb_out}/table-derep.qza" \
-#  --o-dereplicated-sequences ".${bb_out}/rep-seqs-derep.qza" \
-#  >> ${log} 2>&1
+qiime vsearch dereplicate-sequences \
+  --i-sequences ".${bb_f}/${id}_${phred}_Phred.qza" \
+  --o-dereplicated-table ".${bb_out}/table-derep.qza" \
+  --o-dereplicated-sequences ".${bb_out}/rep-seqs-derep.qza" \
+  >> ${log} 2>&1
 
 # Chimera removal
-#qiime vsearch uchime-ref \
-#  --i-sequences ".${bb_out}/rep-seqs-derep.qza" \
-#  --i-table ".${bb_out}/table-derep.qza" \
-#  --i-reference-sequences "${default_classifier}" \
-#  --o-chimeras ".${bb_out}/chimeras.qza" \
-#  --o-nonchimeras ".${bb}/nonchimeras.qza" \
-#  --o-stats ".${bb_out}/uchime-stats.qza" \
-#  --quiet \
-#  --p-threads ${cores} \
-#  >> ${log} 2>&1
+qiime vsearch uchime-ref \
+  --i-sequences ".${bb_out}/rep-seqs-derep.qza" \
+  --i-table ".${bb_out}/table-derep.qza" \
+  --i-reference-sequences "${default_classifier}" \
+  --o-chimeras ".${bb_out}/chimeras.qza" \
+  --o-nonchimeras ".${bb}/nonchimeras.qza" \
+  --o-stats ".${bb_out}/uchime-stats.qza" \
+  --quiet \
+  --p-threads ${cores} \
+  >> ${log} 2>&1
 
 # Export non chimeric structures
-#qiime tools export \
-#  --input-path ".${bb}/nonchimeras.qza" \
-#  --output-path ".${bb}/${id}_nonchimeric" \
-#  >> ${log} 2>&1
-#conda deactivate
+qiime tools export \
+  --input-path ".${bb}/nonchimeras.qza" \
+  --output-path ".${bb}/${id}_nonchimeric" \
+  >> ${log} 2>&1
+conda deactivate
 
 # Filter raw data
-#mv ".${bb}/${id}_nonchimeric/dna-sequences.fasta" ".${bb}/${id}_nonchimeric.fasta"
-#rm -r ".${bb}/M2_nonchimeric"
-#eval "$(conda shell.bash hook)"
-#conda activate "${biopy}"  || { echo "${er}ERROR:${in} Please ensure config.sh contains correct environment names${r} "; exit 1; }
-#seqtk seq -F I ".${bb}/${id}_nonchimeric.fasta" > ".${bb}/${id}_nonchimeric.fastq" 2>> "${log}"
-#conda deactivate
+mv ".${bb}/${id}_nonchimeric/dna-sequences.fasta" ".${bb}/${id}_nonchimeric.fasta"
+rm -r ".${bb}/M2_nonchimeric"
+eval "$(conda shell.bash hook)"
+conda activate "${biopy}"  || { echo "${er}ERROR:${in} Please ensure config.sh contains correct environment names${r} "; exit 1; }
+seqtk seq -F I ".${bb}/${id}_nonchimeric.fasta" > ".${bb}/${id}_nonchimeric.fastq" 2>> "${log}"
+conda deactivate
 seq_count_nonchimeric=$(grep -c '^@' ".${bb}/${id}_nonchimeric.fastq")
 
 echo "3,Isolating ${seq_count_nonchimeric} (partially dereplicated count) non-chimeric amplicons" > $progress_file
 echo "3,Isolating ${seq_count_nonchimeric} (partially dereplicated count) non-chimeric amplicons" >> ${log}
 # Minimap mapping non chimeric reads agianst filtered reads
-#minimap2 -ax map-ont -t "${cores}" ".${bb}/${id}_nonchimeric.fastq" ".${bb_f}/${id}_${phred}_Phred.fastq" > ".${bb}/${id}_mapped.sam" 2>> "${log}"
+minimap2 -ax map-ont -t "${cores}" ".${bb}/${id}_nonchimeric.fastq" ".${bb_f}/${id}_${phred}_Phred.fastq" > ".${bb}/${id}_mapped.sam" 2>> "${log}"
 # Extract non chimeric strcutures (This approach allows chimera detection before binning for optimal results, but without loss of abundance data through binning of depricated data)
-#samtools view -@ "${cores}" -bS ".${bb}/${id}_mapped.sam" | samtools sort -@ "${cores}" -m "${memory_per_core}G" -o ".${bb}/${id}_mapped_sorted.bam"  2>> "${log}"
-#samtools view -@ "${cores}" -b -F 4 ".${bb}/${id}_mapped_sorted.bam" | samtools fastq -@ "${cores}" > ".${bb}/${id}_filtered.fastq" 2>> "${log}"
+samtools view -@ "${cores}" -bS ".${bb}/${id}_mapped.sam" | samtools sort -@ "${cores}" -m "${memory_per_core}G" -o ".${bb}/${id}_mapped_sorted.bam"  2>> "${log}"
+samtools view -@ "${cores}" -b -F 4 ".${bb}/${id}_mapped_sorted.bam" | samtools fastq -@ "${cores}" > ".${bb}/${id}_filtered.fastq" 2>> "${log}"
 # Count and present as fraction
 seq_count_filtered=$(grep -c '^@' ".${bb}/${id}_filtered.fastq")
 percentage_retained=$(echo "scale=2; $seq_count_filtered / $input_count * 100" | bc)
