@@ -1,19 +1,7 @@
-NAP - Made by Luke Jones (Biochemistry Ph.D. student, department of life sciences, the University of Bath) 01/2024
+NAP - Made by Luke Jones (PhD student, University of Bath) with help from Morgan Cockrill (optimisation and script debugging) and James Swift (R scripts development)
 
-How to use:
-(1) Install dependencies
-
-(2) Run 'setup.sh'
-
-(3) Add tools directory to you '.bashrc'
-
-(4) Setup 'config.sh'
-
-(5) Use 'nap dorado' (both -h and --help availble) to prepair data
-
-(6) Use 'nap pipe' (both -h and --help availble) to generate microbiome abundance and taxonomy data
-
-(7) Check your log for further infomation on runs
+How to setup:
+conda install -c bioforge nap
 
 
 Additional:
@@ -29,17 +17,16 @@ current_directory/
                  /raw_data/                 -> All fastq data associated with a barcode
 (PIPE.sh)
 current_directory/Sample_id/
-                           /prep/           -> Ongoing files for all QC and binning stages (Alighment, chimera filtration, binnning, error correction)
-                                /bin        -> Fastp reports and none essential chimeria removal files 
+                           /prep/           -> Ongoing files for all QC and binning stages (Alighment, chimera filtration, binnning, bin refinment)
                                 /filter     -> Fastp output (first round QC reads)
-                                /RAW        -> RAW reads for QIIME (showing untampered abundances of all reads)
+                                /bin        -> Fastp reports and none essential chimeria removal files 
                                 
-                           /PROK/           -> 16S amplicon QIIME outputs
-                                /fastq      -> 16S binned and error corrected reads for QIIME (partially dereplicated)
+                           /PROK/           -> 16S blastn files
 
-                           /EUK/            -> 18S amplicon QIIME outputs
-                               /fastq       -> 18S binned and error corrected reads for QIIME (partially dereplicated)
+                           /EUK/            -> 18S blastn files
 
                            /merged/         -> final 'microbiome.tsv' file
                                   /bin/     -> Processing files for normalisation, bias correction, scalling, and merging of 16S and 18S data
+
+STATISTICAL ANALYSIS R SCRIPTS WILL BE AVAILBE IN THE FUTURE THANKS TO JAMES SWIFT (Bsc University of Bath)
 
