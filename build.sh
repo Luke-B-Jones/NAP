@@ -5,7 +5,6 @@ source config.sh
 echo "(${su}Step ${B}1 | 5${r}${su}:${in} Capturing directories and setting-up config{r})"
 # Capture NAP directory and version
 loc=$(pwd)
-NAP_version=$(grep -oP '(?<=version: ")[^"]*' "meta.yaml")
 # Update config via variable terminology
 update_config() {
     local var_name=$1
@@ -16,33 +15,29 @@ update_config() {
         echo "${er}ERROR:${in} Variable $var_name could not be updated in config${r} "
     fi
 }
-#  Question user:
-echo "${in}${B}Please answer the following questions${r}"
-read -p "${su}  PC threads count:${r} " $thread_count
-read -p "${su}  PC RAM (in GB):${r} " $RAM_count
-echo "${su}Thank you! remember to visit config for more specific pipeline personalisation ${r}"
 # Update config
+thread_count=$(nproc)
+ram_bytes=$(free -b | awk '/^Mem:/{print $2}')
 update_config "w_d" "$loc"
 update_config "pipeline_version" "$NAP_version"
 update_config "all_cores" "$thread_count"
-update_config "all_RAM" "$RAM_count"
-
+update_config "all_RAM" "$ram_bytes"
+update_config "w_d" "$loc"
 # Build file structure
 echo "(${su}Step ${B}2 | 5${r}${su}:${in} Generating file structure ${r})"
-mkdir -p ${loc}/bin/databases
-mkdir -p ${loc}/bin/scripts
-mkdir -p ${loc}/bin/subconfigs
-mkdir -p ${loc}/bin/logs
+mkdir -p "${loc}/bin/databases"
+mkdir -p "${loc}/bin/scripts"
+mkdir -p "${loc}/bin/subconfig"
+mkdir -p "${loc}/bin/logs"
 
 # Move git clone files into correct locations
 mv "${loc}/*.py" "${loc}/bin/scripts"
-mv "${loc}/nap.sh" "${loc}/bin/scripts"
-mv "${loc}/update-database.sh" "${loc}/bin/scripts"
-mv "${loc}/dorado.sh" "${loc}/bin/scripts"
-mv "${loc}/mammalian_microbiome_inclusive.sh" "${loc}/bin/scripts"
-mv "${loc}/pipe.sh" "${loc}/bin/scripts"
+mv "${loc}/AMP_515y-926r.sh" "${loc}/bin/subconfig"
+mv "${loc}/hardware-heavy.sh" "${loc}/bin/subconfig"
+mv "${loc}/hardware-light.sh" "${loc}/bin/subconfig"
+mv "${loc}/hardware-super-light.sh" "${loc}/bin/subconfig"
 sleep 2
-mv "${loc}/*.sh" "${loc}/bin/subconfig"
+mv "${loc}/*.sh" "${loc}/bin/scripts"
 
 # NAP wrapper setup
 ln -s "${loc}/bin/scripts/nap.sh" "${loc}/nap"

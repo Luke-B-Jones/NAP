@@ -57,24 +57,22 @@ def determine_consensus(blast_results):
     consensus_results = []
 
     for qseqid, hits in blast_results.items():
-        if len(hits) > 5:
-            hits = hits[:5]
+        # Limit the hits to the top 10
+        if len(hits) > 10:
+            hits = hits[:10]
 
+        # Determine the most represented genus
         genus_counter = Counter(hit['genus'] for hit in hits)
         most_common_genus, _ = genus_counter.most_common(1)[0]
 
-        species_counter = Counter(hit['species'] for hit in hits if hit['genus'] == most_common_genus)
-        most_common_species, _ = species_counter.most_common(1)[0]
+        # Within the most common genus, find the species with the highest pident
+        genus_hits = [hit for hit in hits if hit['genus'] == most_common_genus]
 
-        # If there's a tie, choose the hit with the highest bitscore
-        consensus_hit = None
-        if len(species_counter) > 1:
-            highest_bitscore = max(hits, key=lambda x: x['bitscore'])
-            consensus_hit = highest_bitscore
-        else:
-            consensus_hit = next(hit for hit in hits if hit['species'] == most_common_species)
+        # Tie-breaker: prioritize pident first, then bitscore, then E-value (lower is better)
+        best_species_hit = max(genus_hits, key=lambda x: (x['pident'], x['bitscore'], -x['evalue']))
 
-        consensus_results.append(consensus_hit)
+        # Add the best hit to the consensus results
+        consensus_results.append(best_species_hit)
     
     return consensus_results
 

@@ -92,7 +92,7 @@ if [ "$TOOL_NAME" = "pipe" ]; then
             # Pass the log file path as the third argument to pipe.sh
             echo -e "${sample_id}\t${barcode}\t${sample_file}" >> "$log_file"
             # Check temrinal size to prevent issues with progres bar
-            min_width=130
+            min_width=150
             current_width=$(tput cols)
             if [ "$current_width" -lt "$min_width" ]; then
               echo "${er}WARNING:${in} resize your terminal to at least $min_width ($current_width current) columns for proper display"

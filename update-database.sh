@@ -16,7 +16,7 @@ database_dir="${w_d}/bin/databases/"
 
 if [ "$ex_type" = "0" ]; then
 # GO (0 - manual)
-echo "${in}Generating databases using filter: ${er}${filter}${r}, this should take between 10-30 mins"
+echo "${in}Generating databases using filter: ${er}${filter}${r}, this should take between, please be patient"
 # Go (1- build)
 else
 echo "${in}This script is currently formatted to function with ${er}${default_database_name} ${default_database_version}${in}, using filter preset: ${er}${filter}${r}"
@@ -27,6 +27,7 @@ fi
 # Intitate awk for 16s and 18s specific groups
 bash "${filter_path}" "$input" "$prefix" "$database_dir"
 
+echo "${su}${B}(4) Generating Blastn databases, and updating config${r}"
 # Count reads
 total_16s=$(grep -c '^>' "${database_dir}16s_${prefix}.fasta")
 total_18s=$(grep -c '^>' "${database_dir}18s_${prefix}.fasta")
@@ -47,10 +48,8 @@ else
     echo "${in} Discarded | total = $discarded_total | $silva_total ${r}"
     printf "${in}Press ${r}Enter${in} to continue regardless?${r}"
 fi
-
 # 16S + 18S = FILERED
 cat "${database_dir}18s_${prefix}.fasta" "${database_dir}16s_${prefix}.fasta" > "${database_dir}filtered_${prefix}.fasta"
-
 # Function to update the config file
 update_config() {
     local var_name=$1
@@ -85,10 +84,12 @@ check_and_delete() {
 # Blastn 16S
 echo "   
     ${in}Blastn 16S database construction: ${r}"
-check_and_delete "${database_dir}16s_${prefix}/"
+check_and_delete "${database_dir}16s_${prefix}"
 makeblastdb -in "${database_dir}16s_${prefix}.fasta" -dbtype nucl -out "${database_dir}16s_${prefix}" -title "SILVA_16S_${prefix}"
 
 # Blastn 18S
 echo "   ${in}Blastn 18S database construction: ${r}"
-check_and_delete "${database_dir}18s_${prefix}/"
+check_and_delete "${database_dir}18s_${prefix}.fasta"
 makeblastdb -in "${database_dir}18s_${prefix}.fasta" -dbtype nucl -out "${database_dir}18s_${prefix}" -title "SILVA_18S_${prefix}"
+
+echo "${su}${B}(5) DONE!${r}"
