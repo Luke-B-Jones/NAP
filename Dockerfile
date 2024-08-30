@@ -47,9 +47,9 @@ FROM continuumio/miniconda3:4.8.2 as conda
 COPY --from=base /home/$USERNAME /home/$USERNAME
 
 # Set up the environment
-COPY environment.yml /home/$USERNAME/
+COPY environment.yaml /home/$USERNAME/
 WORKDIR /home/$USERNAME
-RUN conda env create -f environment.yml && conda clean -afy && \
+RUN conda env create -f environment.yaml && conda clean -afy && \
     echo "source activate nap_env" >> ~/.bashrc && \
     echo 'export PATH=$(pwd)/nap:$PATH' >> ~/.bashrc
 
