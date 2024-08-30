@@ -31,7 +31,6 @@ ARG USER_GID=1000
 # Create a group and user with the specified UID and GID
 RUN groupadd -g $USER_GID $USERNAME && \
     useradd -l -m -u $USER_UID -g $USER_GID -s /bin/bash $USERNAME && \
-    usermod -aG sudo $USERNAME && \
     chown -R $USERNAME:$USERNAME /docker_files
 
 # Switch to the created user
@@ -58,23 +57,24 @@ RUN conda env create -f environment.yml && conda clean -afy && \
 RUN git clone --recurse-submodules https://github.com/comprna/RATTLE /docker_files/RATTLE && \
     cd /docker_files/RATTLE && ./build.sh && \
     echo 'export PATH=$PATH:/docker_files/RATTLE/bin' >> ~/.bashrc
+
 WORKDIR /docker_files/RATTLE
 
-# Clone and build DORADO
+# Install DORADO
 RUN wget https://example.com/path/to/dorado-0.7.3-linux-x64 -O /tmp/dorado-installer && \
     chmod +x /tmp/dorado-installer && \
     /tmp/dorado-installer --prefix=/docker_files/dorado && \
     rm /tmp/dorado-installer
+
 # Verify Dorado installation and add to PATH
 RUN if [ ! -x "/docker_files/dorado/bin/dorado" ]; then \
         echo "Dorado installation failed"; exit 1; \
     fi && \
     echo 'export PATH=$PATH:/docker_files/dorado/bin' >> ~/.bashrc
 
-
-
-# Health check
+# Health check (adjust to check the service or script)
 HEALTHCHECK --interval=5m --timeout=3s \
-  CMD pgrep -f "nap -h" || exit 1
+  CMD /docker_files/dorado/bin/dorado --version || exit 1
+
 # Default command
 CMD ["/bin/bash"]
