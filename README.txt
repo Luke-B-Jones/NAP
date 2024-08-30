@@ -5,7 +5,7 @@ How to setup:
 # GO TO YOUR TOOLS DIRECTORY
 git clone https://github.com/Luke-B-Jones/NAP.git
 cd ./NAP
-docker build -t nap .
+sudo docker build -t nap .
 
 
 
