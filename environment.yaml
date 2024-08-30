@@ -1,17 +1,21 @@
 name: nap_env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
 dependencies:
   - python=3.10
   - numpy
   - pandas=2.2.2
-  - pysam
   - biopython
   - tqdm
+  - pysam
+  - minimap2
+  - samtools
+  - blast
+  - vsearch
+  - nanofilt
   - pip
   - pip:
     - futures
     - regex
-  - conda-forge::minimap2  # Use the conda-forge channel for specific packages
-  - conda-forge::samtools
-  - conda-forge::blast
-  - conda-forge::vsearch
-  - conda-forge::NanoFilt
