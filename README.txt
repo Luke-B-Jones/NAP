@@ -1,4 +1,5 @@
-NAP - Made by Luke Jones (PhD student, University of Bath) with help from Morgan Cockrill (optimisation and script debugging) and James Swift (R scripts development)
+NAP - Nanopore sequencing derived Amplicon Pipeline
+By Luke B.Jones
 
 How to setup:
 # GO TO YOUR TOOLS DIRECTORY
@@ -30,6 +31,6 @@ current_directory/sample_id/
 (STAT.sh)
 current_directory/analysis_id/
 
-THANKS:
-STATISTICAL ANALYSIS R SCRIPTS WILL BE AVAILBE IN THE FUTURE THANKS TO JAMES SWIFT (Bsc University of Bath)
-ANOTHER THANKS TO MORGAN COCKRILL FOR HIS CONTRIBUTIONS TO PIPE SCRIPT, IMPROVING CODE QUALITY AND QC FUNCTIONALITY (Msc University of Bath)
+THANKS TO:
+JAMES SWIFT (Bsc University of Bath): STATISTICAL ANALYSIS R SCRIPTS (AVAILBE IN THE FUTURE THANKS)
+MORGAN COCKRILL (Msc University of Bath): IMPROVING CODE FUNCTIONALITY AND QC FUNCTIONALITY
