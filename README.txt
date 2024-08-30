@@ -7,12 +7,8 @@ cd ./NAP
 docker build -t nap .
 
 
-Additional:
-(1) Use 'nap update-database' to update the database used for taxonomy binning and classification
 
-
-
-Decode files:
+Directory info:
 (DORADO.SH)
 current_directory/
                  /pod5/                     -> Your preexisting data
