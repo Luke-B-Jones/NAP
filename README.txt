@@ -15,7 +15,8 @@ docker build --build-arg USER_NAME=WRITE_YOUR_USERNAME_HERE -t nap .
 `````
 (2 of 3) Activate your image, and get going...
 `````
-docker run -it nap_image
+# Replace: /home/luke/Documents/data/rat_project:/home/luke/Documents/data/rat_project with the directory you need access to (where your data is)
+docker run -it -v /home/luke/Documents/data/rat_project:/home/luke/Documents/data/rat_project nap
 `````
 (3 of 3) Use NAP
 `````
