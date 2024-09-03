@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "# Setting up directorys (1 of 3)"
+echo "# Setting up directorys (1 of 4)"
 source config.sh
 if [ ! -f config.sh ]; then
     echo "ERROR: config.sh not found!"
@@ -15,7 +15,7 @@ mkdir -p "${loc}/bin/databases"
 mkdir -p "${loc}/bin/logs"
 ln -s "${loc}/bin/scripts/nap.sh" "${loc}/nap"
 #
-echo "# Populating the config (2 of 3)"
+echo "# Populating the config (2 of 4)"
 # Update config via variable terminology
 update_config() {
     local var_name=$1
@@ -36,10 +36,12 @@ update_config "all_RAM" "$ram_bytes"
 update_config "w_d" "$loc"
 #
 # Setup database
-echo "# Generating a SILVA database (3 of 3)"
+echo "# Generating $default_database_name v$default_database_version database (3 of 4)"
 cd "${loc}/bin/databases/"
 wget -O SILVA_138.2_SSU_NR99.fasta.gz "https://www.arb-silva.de/fileadmin/silva_databases/release_138_2/Exports/SILVA_138.2_SSURef_NR99_tax_silva.fasta.gz" || { echo "ERROR: Failed to download SILVA database"; exit 1; }
 gzip -d SILVA_138.2_SSU_NR99.fasta.gz
 SILVA_prefix="SILVA_138.2_SSU_NR99"
 # Create databases in manual (0)
 bash "${loc}/bin/scripts/update-database.sh" "$SILVA_prefix" "0"
+echo "# $pipeline_name $pipeline_version setup complete (4 of 4)"
+
