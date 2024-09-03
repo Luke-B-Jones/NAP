@@ -1,80 +1,79 @@
-# Start with a base image of Ubuntu 20.04
-FROM ubuntu:20.04 as base
-
-# Avoid prompts from apt
+# Use Ubuntu 20.04 as the base image
+FROM ubuntu:20.04
+# Set environment variables to non-interactive for apt-get
 ENV DEBIAN_FRONTEND=noninteractive
-
-# Update, install necessary tools, and clean up in one layer
+# Install necessary system dependencies and GCC/G++ 9.x
 RUN apt-get update && apt-get install -y \
-    software-properties-common \
     build-essential \
     gcc-9 \
     g++-9 \
-    make \
-    git \
     cmake \
+    curl \
+    wget \
+    git \
+    ca-certificates \
+    libssl-dev \
+    libcurl4-openssl-dev \
+    libxml2-dev \
     zlib1g-dev \
-    sudo && \
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 100 && \
-    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 100 && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    sudo \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+# Set GCC and G++ to version 9 as the default
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 100 \
+    && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 100
+# Set C++14 as the standard for compilation
+ENV CXXFLAGS="-std=c++14"
 
-# Create the /docker_files directory
-RUN mkdir -p /docker_files
+# Copy NAP files into Docker image and set up permissions
+RUN mkdir -p /opt/NAP
+COPY ./ /opt/NAP/
+RUN chmod +x /opt/NAP/build.sh
+RUN chmod -R +x /opt/NAP/scripts
+RUN chmod -R +x /opt/NAP/subconfigs
+# Run NAP setup script as the new user
+ENV NAP_DIR=/opt/NAP
+WORKDIR $NAP_DIR
+RUN ./build.sh $NAP_DIR > /home/$USER_NAME/build.log 2>&1 || { cat /home/$USER_NAME/build.log; exit 1; }
 
-# Capture the user's name, UID, and GID from build arguments
-ARG USERNAME=myuser
-ARG USER_UID=1000
-ARG USER_GID=1000
+# Clone RATTLE repository and initialize submodules
+RUN git clone --recurse-submodules https://github.com/comprna/RATTLE.git /opt/RATTLE
+# Build RATTLE
+WORKDIR /opt/RATTLE/spoa
+RUN mkdir build && cd build && \
+    cmake .. && make
+WORKDIR /opt/RATTLE
+RUN ./build.sh > build.log 2>&1 || { cat build.log; exit 1; }
 
-# Create a group and user with the specified UID and GID
-RUN groupadd -g $USER_GID $USERNAME && \
-    useradd -l -m -u $USER_UID -g $USER_GID -s /bin/bash $USERNAME && \
-    chown -R $USERNAME:$USERNAME /docker_files
+# Install Miniconda for managing Python environments in the user's home directory
+ENV MINICONDA_VERSION=py38_23.1.0-1
+RUN curl -LO https://repo.anaconda.com/miniconda/Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh && \
+    bash Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh -b -p /opt/miniconda && \
+    rm Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh
+# Set up Conda environment
+COPY environment.yaml /opt/miniconda/
+ENV PATH="/opt/miniconda/bin:$PATH"
+RUN /opt/miniconda/bin/conda init bash && \
+    /opt/miniconda/bin/conda env create -f /opt/miniconda/environment.yaml
+# Ensure Conda is initialized in bash
+RUN echo "source /opt/miniconda/etc/profile.d/conda.sh" >> /etc/bash.bashrc
 
-# Switch to the created user
-USER $USERNAME
-WORKDIR /home/$USERNAME
+# Create a new user based on the build user's name
+ARG USER_NAME
+RUN useradd -ms /bin/bash $USER_NAME && \
+    echo "$USER_NAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+# Set up the home directory as a volume, ensuring persistence and access
+VOLUME /home/$USER_NAME/
+# Ensure correct permissions on the home directory
+RUN chown -R $USER_NAME:$USER_NAME /home/$USER_NAME/
+# Switch to the new user and set up their environment
+USER $USER_NAME
+WORKDIR /home/$USER_NAME
 
-# Copy the current directory contents to the user's home directory
-COPY --chown=$USERNAME:$USERNAME . .
+# Add NAP and RATTLE to PATH
+RUN echo 'export PATH=$PATH:/opt/NAP:/opt/RATTLE' >> /home/$USER_NAME/.bashrc
+# Set the working directory to the user's home directory
+WORKDIR /home/$USER_NAME/
 
-# Use specific version of Miniconda
-FROM continuumio/miniconda3:4.8.2 as conda
-
-# Copy user home directory from base
-COPY --from=base /home/$USERNAME /home/$USERNAME
-
-# Set up the environment
-COPY environment.yaml /home/$USERNAME/
-WORKDIR /home/$USERNAME
-RUN conda env create -f environment.yaml && conda clean -afy && \
-    echo "source activate nap_env" >> ~/.bashrc && \
-    echo 'export PATH=$(pwd)/nap:$PATH' >> ~/.bashrc
-
-# Clone and build RATTLE
-RUN git clone --recurse-submodules https://github.com/comprna/RATTLE /docker_files/RATTLE && \
-    cd /docker_files/RATTLE && ./build.sh && \
-    echo 'export PATH=$PATH:/docker_files/RATTLE/bin' >> ~/.bashrc
-
-WORKDIR /docker_files/RATTLE
-
-# Install DORADO
-RUN wget https://example.com/path/to/dorado-0.7.3-linux-x64 -O /tmp/dorado-installer && \
-    chmod +x /tmp/dorado-installer && \
-    /tmp/dorado-installer --prefix=/docker_files/dorado && \
-    rm /tmp/dorado-installer
-
-# Verify Dorado installation and add to PATH
-RUN if [ ! -x "/docker_files/dorado/bin/dorado" ]; then \
-        echo "Dorado installation failed"; exit 1; \
-    fi && \
-    echo 'export PATH=$PATH:/docker_files/dorado/bin' >> ~/.bashrc
-
-# Health check (adjust to check the service or script)
-HEALTHCHECK --interval=5m --timeout=3s \
-  CMD /docker_files/dorado/bin/dorado --version || exit 1
-
-# Default command
-CMD ["/bin/bash"]
+# Final setup to ensure all commands run with the user privileges
+ENTRYPOINT ["/bin/bash"]
