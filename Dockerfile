@@ -59,7 +59,7 @@ RUN curl -LO https://cdn.oxfordnanoportal.com/software/analysis/dorado-0.7.3-lin
     echo "export PATH=\$PATH:$DORADO_DIR/bin" >> /etc/bash.bashrc
 RUN chmod -R 777 $DORADO_DIR
 
-# Install Miniconda for managing Python environments in the user's home directory
+# Install Miniconda
 ENV MINICONDA_VERSION=py38_23.1.0-1
 RUN curl -LO https://repo.anaconda.com/miniconda/Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh && \
     bash Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh -b -p /opt/miniconda && \
@@ -95,5 +95,5 @@ RUN echo 'export PATH=$PATH:/opt/NAP:/opt/RATTLE' >> /home/$USER_NAME/.bashrc
 # Set the working directory to the user's home directory
 WORKDIR /home/$USER_NAME/
 
-# Final setup to ensure all commands run with the user privileges
+# set to shell
 ENTRYPOINT ["/bin/bash"]
