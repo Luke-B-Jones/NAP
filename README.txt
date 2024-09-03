@@ -1,15 +1,32 @@
-NAP - Nanopore sequencing derived Amplicon Pipeline
+## ***NAP*** - Nanopore sequencing derived Amplicon Pipeline
 By Luke B.Jones
 
-How to setup:
-# GO TO YOUR TOOLS DIRECTORY
+## **Requirments**
+(1) Docker
+(2) PC capable of handleing large datasets (or alternatively, alot of free time), recommend >20GB RAM, GPU, and CPU with >4 cores
+
+## **How to setup:**
+(1 of 3) Clone repo, and setup docker
+```bash
 git clone https://github.com/Luke-B-Jones/NAP.git
 cd ./NAP
-sudo docker build -t nap .
+docker build -t nap .
+```markdown
+(2 of 3) Activate your image, and get going...
+```bash
+docker run -it nap_image
+```markdown
+(3 of 3) Use NAP
+```bash
+nap --help
+```markdown
+# Optional: change the congif (Phred score, basecalling model...etc)
+```bash
+nap configure variable_name=new_content.....
+```markdown
 
 
-
-Directory info:
+## **Directory info:**
 (DORADO.SH)
 current_directory/
                  /pod5/                     -> Your preexisting data
@@ -31,6 +48,6 @@ current_directory/sample_id/
 (STAT.sh)
 current_directory/analysis_id/
 
-THANKS TO:
+## **THANKS TO:**
 JAMES SWIFT (Bsc University of Bath): STATISTICAL ANALYSIS R SCRIPTS (AVAILBE IN THE FUTURE THANKS)
 MORGAN COCKRILL (Msc University of Bath): IMPROVING CODE FUNCTIONALITY AND QC FUNCTIONALITY
