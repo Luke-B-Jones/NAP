@@ -57,8 +57,9 @@ fi
 if [[ "$1" == "configure" ]]; then
     if [[ "$2" == "-h" || "$2" == "--help" ]]; then
         echo "${er} Usage:${in} nap configure <variable_name>=<new_content>... as many varibales as you like
-        e.g., nap configure hardware_use=heavy ${r} "
-        cat config.sh
+        e.g., nap configure hardware_use=heavy ${r} 
+        use 'nap configure -c' to show current config"
+        
         exit 0
     fi
 fi
@@ -126,7 +127,7 @@ if [ "$TOOL_NAME" = "pipe" ]; then
     echo -e "${in}Log file created: ${log_file} ${r}"
 fi
 
-# nap configure <var_name> <new_content>
+# nap configure <var_name> <new_content> or nap configure -c
 if [ "$TOOL_NAME" = "configure" ]; then
     config_location="${w_d}/config.sh"
 
@@ -146,6 +147,18 @@ if [ "$TOOL_NAME" = "configure" ]; then
         fi
     }
 
+    # Function to display the config file
+    display_config() {
+        echo "Current configuration:"
+        cat "$config_location"
+    }
+
+    # Check for the -c option
+    if [ "$1" = "-c" ]; then
+        display_config
+        exit 0
+    fi
+
     # Loop through the arguments and update configs
     shift  # Skip the 'configure' argument
     while [ $# -gt 0 ]; do
@@ -163,7 +176,7 @@ if [ "$TOOL_NAME" = "configure" ]; then
         shift 2
     done
 
-    # Echo the entire configuration file for verification
+    # Echo a confirmation message and the entire configuration file for verification
     echo "${su}Reconfiguration complete: ${r}"
     cat "$config_location"
 fi
