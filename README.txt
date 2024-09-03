@@ -7,35 +7,35 @@ By Luke B.Jones
 
 ## **How to setup:**
 (1 of 3) Clone repo, and setup docker
-```bash
+`````
 git clone https://github.com/Luke-B-Jones/NAP.git
 cd ./NAP
 # Replace: WRITE_YOUR_USERNAME_HERE with your user name
 docker build --build-arg USER_NAME=WRITE_YOUR_USERNAME_HERE -t nap .
-```markdown
+`````
 (2 of 3) Activate your image, and get going...
-```bash
+`````
 docker run -it nap_image
-```markdown
+`````
 (3 of 3) Use NAP
-```bash
+`````
 nap --help
-```markdown
+`````
 # Optional: change the congif (Phred score, basecalling model...etc)
-```bash
+`````
 nap configure variable_name=new_content.....
-```markdown
+`````
 
 ## **How to use:**
 (1) Basecall and demux
-```bash
+`````
 'nap dorado'
-```markdown
+`````
  Setup to automate the basecalling and demux (if needed) of samples. NOTE, if you intend to skip this, ensure your fastq files are in ./raw_data/ when running nap pipe.
 (2) Process samples
-```bash
+`````
 'nap pipe'
-```markdown
+`````
 Once again, setup for automation, list samples you wish to process sequencually, including the fastq number and asscioted sample ID.
 
 
