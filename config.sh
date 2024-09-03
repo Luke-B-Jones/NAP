@@ -42,7 +42,6 @@ export progress_monitor="${w_d}/bin/scripts/progress_monitor.py"             # I
 export normalise="${w_d}/bin/scripts/normalise.py"                           # TSS normalisation
 export merge_16s_18s="${w_d}/bin/scripts/merge_16s_18s.py"                   # Merge 16s and 18s tsv's
 export bias_correction="${w_d}/bin/scripts/bias_correction.py"               # Correct for amplicon bias
-#export extract_high_AS="${w_d}/bin/scripts/extract_high_AS.py"
 export reduce_to_abundance="${w_d}/bin/scripts/reduce_to_abundance.py"       # Reduce blastn raw hits against con into abudnance data
 export blast_consensus="${w_d}/bin/scripts/blast_consensus.py"               # CON hit consensus
 export generate_con_database="${w_d}/bin/scripts/generate_con_database.py"   # Generate database from CON blastn hits (for raw data)
