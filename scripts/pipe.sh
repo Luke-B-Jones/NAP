@@ -12,6 +12,7 @@ current_dir=$(pwd)
 echo -e "///////////////////////////////////////////////////////////////////////////////////////////" >> "${log}"
 mkdir -p "./${id}" # Create a directory for the sample ID
 cd "./${id}"
+conda activate nap_env
 # Prepare terminal display
 total_tasks=15
 progress_file="${current_dir}/${id}/progress.txt" # Define progress (in-terminal)
@@ -23,7 +24,7 @@ python "${progress_monitor}" "${progress_file}" "${progress_info}" "${total_task
 # Save the PID of the background Python
 PYTHON_PID=$!
 # Ensure exit cleans up after itself
-trap 'kill ${PYTHON_PID} 2>/dev/null; rm -f ${progress_file}; rm -f ${progress_info}; mv ${log} ${current_dir}/${id}/logs/; exit' EXIT INT TERM
+trap 'kill ${PYTHON_PID} 2>/dev/null; rm -f ${progress_file}; conda deactivate; rm -f ${progress_info}; mv ${log} ${current_dir}/${id}/logs/; exit' EXIT INT TERM
 # Update (weird fix to python issue)
 echo "0,...and so it begins: ${input_count} raw reads" > "${progress_file}"
 echo "|||||||||||||||||" > "${progress_info}"
@@ -313,3 +314,4 @@ echo "15,Pipeline complete: see ${merge_o}/${id}_Q${phred}_microbiome_CON.tsv" >
 # Wait for the Python script to finish before removing the progress file and exiting
 wait "${PYTHON_PID}"
 rm -f "${progress_file}" "${progress_info}"
+conda deactivate
