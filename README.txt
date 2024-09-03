@@ -10,7 +10,8 @@ By Luke B.Jones
 ```bash
 git clone https://github.com/Luke-B-Jones/NAP.git
 cd ./NAP
-docker build -t nap .
+# Replace: WRITE_YOUR_USERNAME_HERE with your user name
+docker build --build-arg USER_NAME=WRITE_YOUR_USERNAME_HERE -t nap .
 ```markdown
 (2 of 3) Activate your image, and get going...
 ```bash
