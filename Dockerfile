@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zlib1g-dev \
     sudo \
-    bc \  # Add bc command needed by your scripts
+    bc \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
