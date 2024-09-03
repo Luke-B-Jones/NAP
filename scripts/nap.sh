@@ -58,6 +58,7 @@ if [[ "$1" == "configure" ]]; then
     if [[ "$2" == "-h" || "$2" == "--help" ]]; then
         echo "${er} Usage:${in} nap configure <variable_name>=<new_content>... as many varibales as you like
         e.g., nap configure hardware_use=heavy ${r} "
+        cat config.sh
         exit 0
     fi
 fi
