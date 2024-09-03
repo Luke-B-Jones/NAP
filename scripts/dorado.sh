@@ -3,6 +3,11 @@
 source config.sh
 cd=$(pwd)
 man_auto_choice=$1
+# Confirm dorado is working
+if ! dorado -h > /dev/null 2>&1; then
+    echo "ERROR: Dorado is not installed or not functioning correctly."
+    exit 1
+fi
 
 # Error if no man/auto
 if [ "$man_auto_choice" != "-a" ] && [ "$man_auto_choice" != "-m" ]; then
