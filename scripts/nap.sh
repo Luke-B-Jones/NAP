@@ -48,7 +48,16 @@ fi
 if [[ "$1" == "update-database" ]]; then
     if [[ "$2" == "-h" || "$2" == "--help" ]]; then
         echo "${er} Usage:${in} nap update-database <file_prefix> ${r}
-        (1)${in} Be in the ./bin/database/ folder along with your database.fasta ${r}"
+        (1)${in} Be in the ./bin/database/ folder along with your new database.fasta ${r}"
+        exit 0
+    fi
+fi
+
+# Reconfigure
+if [[ "$1" == "configure" ]]; then
+    if [[ "$2" == "-h" || "$2" == "--help" ]]; then
+        echo "${er} Usage:${in} nap configure <variable_name>=<new_content>... as many varibales as you like
+        e.g., nap configure hardware_use=heavy ${r} "
         exit 0
     fi
 fi
@@ -114,4 +123,46 @@ if [ "$TOOL_NAME" = "pipe" ]; then
         shift 2
     done
     echo -e "${in}Log file created: ${log_file} ${r}"
+fi
+
+# nap configure <var_name> <new_content>
+if [ "$TOOL_NAME" = "configure" ]; then
+    config_location="${w_d}/config.sh"
+
+    # Function to update the config
+    update_config() {
+        local var_name=$1
+        local new_value=$2
+
+        # Check if the variable exists in the config file
+        if grep -q "^export ${var_name}=" "$config_location"; then
+            # Update the variable's value correctly within double quotes
+            sed -i "s|^export ${var_name}=\".*\"|export ${var_name}=\"${new_value}\"|" "$config_location"
+            echo "Updated ${var_name} to ${new_value}"
+        else
+            # Variable not found, print an error
+            echo "${er}ERROR:${in} Variable ${var_name} not found in config, check spelling? ${r}"
+        fi
+    }
+
+    # Loop through the arguments and update configs
+    shift  # Skip the 'configure' argument
+    while [ $# -gt 0 ]; do
+        var_name=$1   # First argument is the variable name
+        new_value=$2  # Second argument is the new value
+        
+        # Check if we have both a variable name and new value
+        if [ -n "$var_name" ] && [ -n "$new_value" ]; then
+            update_config "$var_name" "$new_value"
+        else
+            echo "${er}ERROR:${in} Missing variable name or new value, 'var_name=new_value' expected ${r}"
+        fi
+
+        # Shift by 2 to move to the next variable and value pair
+        shift 2
+    done
+
+    # Echo the entire configuration file for verification
+    echo "${su}Reconfiguration complete: ${r}"
+    cat "$config_location"
 fi
