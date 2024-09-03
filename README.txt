@@ -29,6 +29,7 @@ nap configure variable_name=new_content.....
 ## **How to use:**
 (1) Basecall and demux
 `````
+# Dorado now requires an installation package, and therefore more be installed into the image manually to use this module
 'nap dorado'
 `````
  Setup to automate the basecalling and demux (if needed) of samples. NOTE, if you intend to skip this, ensure your fastq files are in ./raw_data/ when running nap pipe.
