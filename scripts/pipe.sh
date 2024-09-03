@@ -12,7 +12,12 @@ current_dir=$(pwd)
 echo -e "///////////////////////////////////////////////////////////////////////////////////////////" >> "${log}"
 mkdir -p "./${id}" # Create a directory for the sample ID
 cd "./${id}"
+# Get conda going and check for instilation issues
 conda activate nap_env
+if ! conda activate nap_env > /dev/null 2>&1; then
+  echo "ERROR: Failed to activate conda environment 'nap_env'."
+  exit 1
+fi
 # Prepare terminal display
 total_tasks=15
 progress_file="${current_dir}/${id}/progress.txt" # Define progress (in-terminal)
