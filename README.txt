@@ -25,6 +25,19 @@ nap --help
 nap configure variable_name=new_content.....
 ```markdown
 
+## **How to use:**
+(1) Basecall and demux
+```bash
+'nap dorado'
+```markdown
+ Setup to automate the basecalling and demux (if needed) of samples. NOTE, if you intend to skip this, ensure your fastq files are in ./raw_data/ when running nap pipe.
+(2) Process samples
+```bash
+'nap pipe'
+```markdown
+Once again, setup for automation, list samples you wish to process sequencually, including the fastq number and asscioted sample ID.
+
+
 
 ## **Directory info:**
 (DORADO.SH)
