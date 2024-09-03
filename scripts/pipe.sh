@@ -62,15 +62,17 @@ mkdir -p "${EUK}"
 mkdir -p "${PROK}"
 mkdir -p "${merge_b}"
 mkdir -p ./logs
-#
-if [ "${input_count}" -gt 500000 ]; then
-    phred="${phred_0.5m}"
+# Autoset Phred (aiming for 50-200k reads with highest phred possible)
+if [ "${input_count}" -gt 1000000 ]; then
+    phred="${phred_1000k}"
+elif [ "${input_count}" -gt 500000 ]; then
+    phred="${phred_500k}"
 elif [ "${input_count}" -gt 300000 ]; then
-    phred="${phred_0.3m}"
+    phred="${phred_300k}"
 elif [ "${input_count}" -gt 200000 ]; then
-    phred="${phred_0.2m}"
+    phred="${phred_200k}"
 elif [ "${input_count}" -gt 100000 ]; then
-    phred="${phred_0.1m}"
+    phred="${phred_100k}"
 elif [ "${input_count}" -gt 50000 ]; then
     phred="${phred_50k}"
 else
