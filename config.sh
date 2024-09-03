@@ -21,12 +21,12 @@ export phred_fail="18" # Phred if <50,000 reads
 
 
 # Hardware
-export all_cores="32" # All threads availible
-export all_RAM="96" # All RAM (memory)
+export all_cores="1" # All threads availible
+export all_RAM="5" # All RAM (memory)
 # Pipeline info
 export pipeline_name="Nanopore_amplicon_pipeline"
 export pipeline_version="1.0.0-alpha"
-export w_d="/home/luke/Documents/tools/nap" # Directory where tool is stored
+export w_d="" # Directory where tool is stored
 # Databases and info
 export default_database_version="138.2"
 export default_database_name='SILVA'
