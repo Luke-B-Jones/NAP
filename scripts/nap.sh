@@ -228,7 +228,12 @@ if [ "$TOOL_NAME" = "import" ]; then
     read for_range
     echo "Enter reverse primer binding range (e.g., 600-1200; recommend extending lower value -20%):"
     read rev_range
+    echo "Enter minimum 16s amplicon legnth when trimming SILVA (e.g., 300):"
+    read ref_min_length_16s
+    echo "Enter minimum 18s amplicon legnth when trimming SILVA (e.g., 400):"
+    read ref_min_length_18s
 
+    
     # Function to update the configuration in the new file
     update_amp_config() {
         local var_name=$1
@@ -255,7 +260,8 @@ if [ "$TOOL_NAME" = "import" ]; then
     update_amp_config "for_seq" "$for_seq" "$output_file"
     update_amp_config "rev_seq" "$rev_seq" "$output_file"
     update_amp_config "for_range" "$for_range" "$output_file"
-    update_amp_config "rev_range" "$rev_range" "$output_file"
+    update_amp_config "ref_min_length_16s" "$ref_min_length_16s" "$output_file"
+    update_amp_config "ref_min_length_18s" "$ref_min_length_18s" "$output_file"
     cat "$output_file"
     # Ask the user to check the file and press Enter to proceed
     read -p "${su}Please review, press Enter to continue.${r}"
