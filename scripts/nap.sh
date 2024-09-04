@@ -8,14 +8,14 @@ cd=$(pwd)
 # Display help regardless of bash syntax error in -help
 function display_help() {
     echo "${in} Usage:${r} nap <tool> [options]...${r}
-    ${in}Tools/Options:${r}
-        ${B}dorado  ${r}-${in} Basecalling and demultiplexing (dorado-auto to preload config settings) ${r}
-            ${B}-a ${r}-${in} Exracts kit/basecalling model from config ${r}
-            ${B}-m ${r}-${in} Manually input kit/model during run ${r}
-        ${B}pipe  ${r}-${in} process 16s and 18s mixed amplicon samples ${r}
-        ${B}update-database  ${r}-${in} update alighment database ${r} 
-        ${B}--help  |  -h  ${r}- ${in} Print help info ${r}
-        ${B}--version | -v  ${r}-${in} Print pipeline version ${r}"
+    Tools/Options:${r}
+        dorado  ${r}-${in} Basecalling and demultiplexing (dorado-auto to preload config settings) ${r}
+            -a ${r}-${in} Exracts kit/basecalling model from config ${r}
+            -m ${r}-${in} Manually input kit/model during run ${r}
+        pipe  ${r}-${in} process 16s and 18s mixed amplicon samples ${r}
+        update-database  ${r}-${in} update alighment database ${r} 
+        --help  |  -h  ${r}- ${in} Print help info ${r}
+        --version | -v  ${r}-${in} Print pipeline version ${r}"
 }
 # HELP
 if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
@@ -60,6 +60,14 @@ if [[ "$1" == "configure" ]]; then
         e.g., nap configure hardware_use=heavy ${r} 
         use 'nap configure -c' to show current config"
         
+        exit 0
+    fi
+fi
+# Import
+if [[ "$1" == "import" ]]; then
+    if [[ "$2" == "-h" || "$2" == "--help" ]]; then
+        echo "${er} Usage:${in} nap import
+        Create your own primer specific preset, directly modifing database setup and pipeline activity ${r}"        
         exit 0
     fi
 fi
@@ -179,4 +187,89 @@ if [ "$TOOL_NAME" = "configure" ]; then
     # Echo a confirmation message and the entire configuration file for verification
     echo "${su}Reconfiguration complete: ${r}"
     cat "$config_location"
+fi
+
+# nap import <name>
+if [ "$TOOL_NAME" = "import" ]; then
+    template_file="${subconfig}AMP_template.sh"
+    if [ ! -f "$template_file" ]; then
+        echo "${er}ERROR:${in} Template file not found: ${template_file} ${r}"
+        exit 1
+    fi
+
+    # Prompt the user for input to populate variables in the template
+    echo "Enter the primer set name (e.g., 515y-926r):"
+    read primer_set
+    # create the output file
+    output_file="${w_d}/bin/scripts/AMP_${primer_set}.sh"
+    cp "$template_file" "$output_file"
+    # Prompt for user input to populate the variables
+    echo "Enter maximum length filter (e.g., 1200; recommend max length +25%):"
+    read max_length
+    echo "Enter minimum length filter (e.g., 150; recommend min length -10%):"
+    read min_length
+    echo "Enter Blastn CON 16s identity threshold (default 95):"
+    read ident_CON_16s
+    echo "Enter Blastn CON 18s identity threshold (default 95):"
+    read ident_CON_18s
+    echo "Enter Blastn RAW 16s identity threshold (default 80):"
+    read ident_RAW_16s
+    echo "Enter Blastn RAW 18s identity threshold (default 80):"
+    read ident_RAW_18s
+    echo "Enter (relative) bias correction factor for 16s (e.g., 1):"
+    read bias_factor_16s
+    echo "Enter (relative) bias correction factor for 18s (e.g., 2):"
+    read bias_factor_18s
+    echo "Enter forward sequence for database (e.g., AGAGTTTGATCCTGGCTCAG):"
+    read for_seq
+    echo "Enter reverse sequence for database (e.g., CTTACCTTGTTACGACTT):"
+    read rev_seq
+    echo "Enter forward primer binding range (e.g., 200,500; recommend extending higher value +20%):"
+    read for_range
+    echo "Enter reverse primer binding range (e.g., 600,1200; recommend extending lower value -20%):"
+    read rev_range
+
+    # Function to update the configuration in the new file
+    update_amp_config() {
+        local var_name=$1
+        local new_value=$2
+        local file_path=$3
+
+        # Update the variable's value correctly within double quotes in the export statement
+        if grep -q "^export ${var_name}=" "$file_path"; then
+            sed -i "s|^export ${var_name}=\".*\"|export ${var_name}=\"${new_value}\"|" "$file_path"
+        else
+            echo "${er}ERROR:${in} Variable ${var_name} not found in template file ${r}"
+        fi
+    }
+
+    # Update the variables in the new file
+    update_amp_config "max_length" "$max_length" "$output_file"
+    update_amp_config "min_length" "$min_length" "$output_file"
+    update_amp_config "ident_CON_16s" "$ident_CON_16s" "$output_file"
+    update_amp_config "ident_CON_18s" "$ident_CON_18s" "$output_file"
+    update_amp_config "ident_RAW_16s" "$ident_RAW_16s" "$output_file"
+    update_amp_config "ident_RAW_18s" "$ident_RAW_18s" "$output_file"
+    update_amp_config "bias_factor_16s" "$bias_factor_16s" "$output_file"
+    update_amp_config "bias_factor_18s" "$bias_factor_18s" "$output_file"
+    update_amp_config "for_seq" "$for_seq" "$output_file"
+    update_amp_config "rev_seq" "$rev_seq" "$output_file"
+    update_amp_config "for_range" "$for_range" "$output_file"
+    update_amp_config "rev_range" "$rev_range" "$output_file"
+    cat "$output_file"
+    # Ask the user to check the file and press Enter to proceed
+    read -p "${su}Please review, press Enter to continue.${r}"
+
+    # Ask if the user wants to make this the new default
+    read -p "Do you want to make this the new default configuration? (y/n): " response
+    if [[ "$response" =~ ^[Yy]$ ]]; then
+        # Update the default configuration in config.sh
+        config_file="${w_d}/config.sh"
+        sed -i "s|^export amplicon_pre_set=\".*\"|export amplicon_pre_set=\"AMP_${primer_set}\"|" "$config_file"
+        echo "${su}Default configuration updated to: AMP_${primer_set} ${r}"
+    else
+        echo "${su}Default remains $amplicon_pre_set, use nap configure when you want to use 'AMP_${primer_set}'. ${r}"
+    fi
+
+    exit 0
 fi
