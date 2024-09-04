@@ -15,13 +15,11 @@ git clone https://github.com/Luke-B-Jones/NAP.git
 cd ./NAP
 `````
 `````
-# Replace: 'luke' with your user name
-docker build --build-arg USER_NAME=luke -t nap .
+docker build --build-arg USER_NAME=$USER -t nap .
 `````
 (2 of 3) Activate your image, and get going...
 `````
-# Replace: dir:dir with the directory you need to access (where your data is)
-docker run -it -v /home/luke/Documents/data/rat_project:/home/luke/Documents/data/rat_project nap
+docker run -it -v /home/$USER:/home/$USER nap
 `````
 (3 of 3) Use NAP
 `````
