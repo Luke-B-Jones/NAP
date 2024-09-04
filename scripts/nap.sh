@@ -14,6 +14,9 @@ function display_help() {
             -m ${r}-${in} Manually input kit/model during run ${r}
         pipe  ${r}-${in} process 16s and 18s mixed amplicon samples ${r}
         update-database  ${r}-${in} update alighment database ${r} 
+        configure ${r}-${in} Modify internal settings ${r} 
+        import ${r}-${in} Setup a new primer-set/amplicon-type for use ${r}
+        stat ${r}-${in} Conduct basic statistical analyses, on sample and between samples ${r}
         --help  |  -h  ${r}- ${in} Print help info ${r}
         --version | -v  ${r}-${in} Print pipeline version ${r}"
 }
@@ -72,11 +75,22 @@ if [[ "$1" == "import" ]]; then
         exit 0
     fi
 fi
+# STAT
+if [[ "$1" == "stat" ]]; then
+    if [[ "$2" == "-h" || "$2" == "--help" ]]; then
+        echo "${er} Usage:${in} nap stat
+        STILL UNDER CONSTRUCTION...nothing to see here ${r}"        
+        exit 0
+    fi
+fi
 
 # Parse and initate scripts
 TOOL_NAME=$1
 shift
-
+# Script 'nap stat'
+if [ "$TOOL_NAME" = "stat" ]; then
+    echo "${er} STILL UNDER CONSTRUCTION...nothing to see here ${r}"  
+fi
 # Script 'nap dorado'
 if [ "$TOOL_NAME" = "dorado" ]; then
   bash "${sub}/dorado.sh" "$1"
