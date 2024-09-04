@@ -20,7 +20,6 @@ RUN apt-get update && apt-get install -y \
     bc \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
 # Set GCC and G++ to version 9 as the default
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 100 \
     && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 100
@@ -33,7 +32,7 @@ COPY ./ /opt/NAP/
 RUN chmod +x /opt/NAP/build.sh
 RUN chmod -R +x /opt/NAP/scripts
 RUN chmod -R +x /opt/NAP/subconfigs
-# Ensure full read/write/execute permissions for the NAP directory
+# Ensure full read/write/execute permissions for the NAP directory recursively
 RUN chmod -R 777 /opt/NAP
 # Run NAP setup script as the new user
 ENV NAP_DIR=/opt/NAP
@@ -51,13 +50,13 @@ RUN ./build.sh > build.log 2>&1 || { cat build.log; exit 1; }
 # Ensure full read/write/execute permissions for the RATTLE directory
 RUN chmod -R 777 /opt/RATTLE
 
-# Download and extract Dorado
+# Download and extract Dorado, set permissions, and export path
 RUN curl -LO https://cdn.oxfordnanoportal.com/software/analysis/dorado-0.7.3-linux-x64.tar.gz && \
     tar -xzvf dorado-0.7.3-linux-x64.tar.gz -C /opt/ && \
     rm dorado-0.7.3-linux-x64.tar.gz && \
     DORADO_DIR=$(find /opt/ -maxdepth 1 -type d -name 'dorado*' | head -n 1) && \
+    chmod -R 777 "$DORADO_DIR" && \
     echo "export PATH=\$PATH:$DORADO_DIR/bin" >> /etc/bash.bashrc
-RUN chmod -R 777 $DORADO_DIR
 
 # Install Miniconda
 ENV MINICONDA_VERSION=py38_23.1.0-1
@@ -71,6 +70,7 @@ RUN /opt/miniconda/bin/conda init bash && \
     /opt/miniconda/bin/conda env create -f /opt/miniconda/environment.yaml
 # Ensure Conda is initialized in bash
 RUN echo "source /opt/miniconda/etc/profile.d/conda.sh" >> /etc/bash.bashrc
+RUN echo "source /opt/miniconda/etc/profile.d/conda.sh" >> /home/$USER_NAME/.bashrc
 # Ensure full read/write/execute permissions for the Miniconda directory
 RUN chmod -R 777 /opt/miniconda
 
@@ -78,13 +78,11 @@ RUN chmod -R 777 /opt/miniconda
 ARG USER_NAME
 RUN useradd -ms /bin/bash $USER_NAME && \
     echo "$USER_NAME ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-
 # Set up the home directory as a volume, ensuring persistence and access
 VOLUME /home/$USER_NAME/
 # Ensure correct permissions on the home directory
 RUN chown -R $USER_NAME:$USER_NAME /home/$USER_NAME/
 RUN chmod -R 777 /home/$USER_NAME/
-
 # Switch to the new user and set up their environment
 USER $USER_NAME
 WORKDIR /home/$USER_NAME
@@ -95,5 +93,5 @@ RUN echo 'export PATH=$PATH:/opt/NAP:/opt/RATTLE' >> /home/$USER_NAME/.bashrc
 # Set the working directory to the user's home directory
 WORKDIR /home/$USER_NAME/
 
-# set to shell
+# Set to shell
 ENTRYPOINT ["/bin/bash"]
