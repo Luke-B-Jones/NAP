@@ -3,6 +3,7 @@ By Luke B.Jones
 
 ## **Requirments**
 (1) Docker
+
 (2) PC capable of handleing large datasets (or alternatively, alot of free time), recommend >20GB RAM, GPU, and CPU with >4 cores
 
 ## **How to setup:**
