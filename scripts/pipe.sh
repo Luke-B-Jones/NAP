@@ -71,9 +71,7 @@ mkdir -p "${PROK}"
 mkdir -p "${merge_b}"
 mkdir -p ./logs
 # Autoset Phred (aiming for 50-200k reads with highest phred possible)
-if [ "${input_count}" -gt 1000000 ]; then
-    phred="${phred_1000k}"
-elif [ "${input_count}" -gt 500000 ]; then
+if [ "${input_count}" -gt 500000 ]; then
     phred="${phred_500k}"
 elif [ "${input_count}" -gt 300000 ]; then
     phred="${phred_300k}"
@@ -326,9 +324,9 @@ python "${bias_correction}" "${EUK}/${id}_18s_RAWxCON.tsv" "${bias_factor_18s}" 
 python "${normalise}" "${merge_b}/${id}_16s_unbias.tsv" "${norm_factor}" "${merge_b}/${id}_16s_microbiome.tsv" "${log}"
 python "${normalise}" "${merge_b}/${id}_18s_unbias.tsv" "${norm_factor}" "${merge_b}/${id}_18s_microbiome.tsv" "${log}"
 # Merge
-python "${merge_16s_18s}" "${merge_b}/${id}_18s_microbiome.tsv" "${merge_b}/${id}_16s_microbiome.tsv" "${merge_o}/${id}_microbiome.tsv" "${log}"
+python "${merge_16s_18s}" "${merge_b}/${id}_18s_microbiome.tsv" "${merge_b}/${id}_16s_microbiome.tsv" "${merge_b}/${id}_microbiome_full-tax.tsv" "${log}"
 # python "${decontaminate}" "${merge_o}/${id}_microbiome.tsv" "${blank_microbiome}" "${decontamination_factor}"
-python "{simplify_taxa}" "${merge_o}/${id}_microbiome.tsv"
+python "{simplify_taxa}" "${merge_b}/${id}_microbiome_full-tax.tsv" "${merge_o}/${id}_microbiome.tsv"
 # Log completion message
 echo "15,Pipeline complete: see ${merge_o}/${id}_Q${phred}_microbiome_CON.tsv" > "${progress_file}"
 # Wait for the Python script to finish before removing the progress file and exiting
