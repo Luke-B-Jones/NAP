@@ -21,21 +21,21 @@ export phred_fail="18" # Phred if <50,000 reads
 
 
 # Hardware
-export all_cores="1" # All threads availible
-export all_RAM="5" # All RAM (memory)
+export all_cores="" # All threads availible
+export all_RAM="" # All RAM (memory)
 # Pipeline info
 export pipeline_name="Nanopore_amplicon_pipeline"
 export pipeline_version="1.0.0-alpha"
-export w_d="" # Directory where tool is stored
+export w_d=""
 # Databases and info
 export default_database_version="138.2"
 export default_database_name='SILVA'
 export subconfig="${w_d}/bin/subconfigs"
-export fasta_18s_database="/home/luke/Documents/tools/nap/bin/databases/18s_SILVA_138.2_SSU_NR99.fasta"
-export fasta_16s_database="/home/luke/Documents/tools/nap/bin/databases/16s_SILVA_138.2_SSU_NR99.fasta"
-export fasta_filtered_database="/home/luke/Documents/tools/nap/bin/databases/filtered_SILVA_138.2_SSU_NR99.fasta"
-export blastn_16s_database="/home/luke/Documents/tools/nap/bin/databases/16s_SILVA_138.2_SSU_NR99"
-export blastn_18s_database="/home/luke/Documents/tools/nap/bin/databases/18s_SILVA_138.2_SSU_NR99"
+export fasta_18s_database=""
+export fasta_16s_database=""
+export fasta_filtered_database=""
+export blastn_16s_database=""
+export blastn_18s_database=""
 # Python
 export progress_monitor="${w_d}/bin/scripts/progress_monitor.py"             # In terminal progress bar
 export normalise="${w_d}/bin/scripts/normalise.py"                           # TSS normalisation
