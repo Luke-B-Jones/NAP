@@ -9,6 +9,12 @@ if [ -z "$1" ]; then
     echo "${er}ERROR:${in} please provide prefix to match fasta (which must be in /databases/) ${r}"
     exit 0
 fi
+source "/opt/miniconda/etc/profile.d/conda.sh"
+conda activate nap_env
+if ! conda activate nap_env > /dev/null 2>&1; then
+  echo "ERROR: Failed to activate conda environment 'nap_env'."
+  exit 1
+fi
 filter_path="${w_d}/bin/scripts/${filter}.sh"
 input="${w_d}/bin/databases/${prefix}.fasta"
 database_dir="${w_d}/bin/databases/"
@@ -92,4 +98,5 @@ echo "   ${in}Blastn 18S database construction: ${r}"
 check_and_delete "${database_dir}18s_${prefix}.fasta"
 makeblastdb -in "${database_dir}18s_${prefix}.fasta" -dbtype nucl -out "${database_dir}18s_${prefix}" -title "SILVA_18S_${prefix}"
 
+conda deactivate
 echo "${su}${B}(5) DONE!${r}"
