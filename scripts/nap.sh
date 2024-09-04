@@ -4,7 +4,7 @@
 source config.sh
 sub="${w_d}/bin/scripts"
 cd=$(pwd)
-
+config_location="${w_d}/config.sh"
 # Display help regardless of bash syntax error in -help
 function display_help() {
     echo "${in} Usage:${r} nap <tool> [options]...${r}
@@ -56,6 +56,7 @@ fi
 # Reconfigure
 if [[ "$1" == "configure" ]]; then
     if [[ "$2" == "-h" || "$2" == "--help" ]]; then
+        cat "$config_location"
         echo "${er} Usage:${in} nap configure <variable_name>=<new_content>... as many varibales as you like
         e.g., nap configure hardware_use=heavy ${r} 
         use 'nap configure -c' to show current config"
@@ -133,8 +134,6 @@ fi
 
 # nap configure <var_name> <new_content> or nap configure -c
 if [ "$TOOL_NAME" = "configure" ]; then
-    config_location="${w_d}/config.sh"
-
     # Function to update the config
     update_config() {
         local var_name=$1
@@ -229,7 +228,6 @@ if [ "$TOOL_NAME" = "import" ]; then
     echo "Enter minimum 18s amplicon legnth when trimming SILVA (e.g., 400):"
     read ref_min_length_18s
 
-    
     # Function to update the configuration in the new file
     update_amp_config() {
         local var_name=$1
