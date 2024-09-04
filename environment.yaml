@@ -157,7 +157,6 @@ dependencies:
   - shasta=0.12.0
   - six=1.16.0
   - smartdenovo=1.0.0
-  - spades=4.0.0
   - sympy=1.13.2
   - sysroot_linux-64=2.17
   - tk=8.6.13
