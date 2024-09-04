@@ -48,7 +48,7 @@ Once again, setup for automation, list samples you wish to process sequencually,
 
 
 ## **Directory info:**
-![pipeline_directory_layout](./bin/pipeline_directory_layout.png)
+![pipeline_directory_layout](./pipeline_directory_layout.png)
 
 
 
