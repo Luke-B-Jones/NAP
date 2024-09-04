@@ -31,7 +31,7 @@ export w_d="" # Directory where tool is stored
 # Databases and info
 export default_database_version="138.2"
 export default_database_name='SILVA'
-export subconfig="${w_d}/bin/subconfig"
+export subconfig="${w_d}/bin/subconfigs"
 export fasta_18s_database="/home/luke/Documents/tools/nap/bin/databases/18s_SILVA_138.2_SSU_NR99.fasta"
 export fasta_16s_database="/home/luke/Documents/tools/nap/bin/databases/16s_SILVA_138.2_SSU_NR99.fasta"
 export fasta_filtered_database="/home/luke/Documents/tools/nap/bin/databases/filtered_SILVA_138.2_SSU_NR99.fasta"
