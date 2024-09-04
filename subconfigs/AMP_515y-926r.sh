@@ -14,5 +14,5 @@ export bias_factor_18s="2"
 # Database info
 export for_seq="GTGYCAGCMGCCGCGGTAA"
 export rev_seq="CCGYCAATTYMTTTRAGTTT"
-export for_range="300,800"
-export rev_range="650,1500"
+export for_range="300-800"
+export rev_range="650-1500"
