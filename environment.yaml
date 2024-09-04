@@ -13,6 +13,7 @@ dependencies:
   - binutils_linux-64=2.40
   - biopython=1.84
   - blas=1.0
+  - blast=2.12.0
   - brotli-python=1.1.0
   - bzip2=1.0.8
   - c-ares=1.32.3
