@@ -25,21 +25,23 @@ docker run -it -v /home/luke/Documents/data/rat_project:/home/luke/Documents/dat
 `````
 nap --help
 `````
-# Optional: change the congif (Phred score, basecalling model...etc)
+Optional: change the congif (Phred score, basecalling model...etc)
 `````
 nap configure variable_name=new_content.....
 `````
 
 ## **How to use:**
-(1) Basecall and demux
+(1) Basecall and demux (optional)
 `````
-# Dorado now requires an installation package, and therefore more be installed into the image manually to use this module
-'nap dorado'
+# Recomend: update the config with your basecalling settings and use automatic (-a), ensure your in same direcotry as ./pod5/
+'nap dorado -a/-m'
 `````
- Setup to automate the basecalling and demux (if needed) of samples. NOTE, if you intend to skip this, ensure your fastq files are in ./raw_data/ when running nap pipe.
+Setup to automate the basecalling and demux (if needed) of samples. 
+NOTE, if you intend to skip this, ensure your fastq files are in ./raw_data/ when running nap pipe.
 (2) Process samples
 `````
-'nap pipe'
+# NUM/PREFIX is unique identifier of your fastq, for example, if you demux and sample 1 is SQK-NBD114-24_barcode02.fastq, use 'nap pipe 02 1'
+'nap pipe NUM/PREFIX ID'
 `````
 Once again, setup for automation, list samples you wish to process sequencually, including the fastq number and asscioted sample ID.
 
@@ -55,12 +57,9 @@ current_directory/
 current_directory/sample_id/
                            /prep/           -> Ongoing files for all QC and binning stages (Alighment, chimera filtration, binnning, bin refinment)
                                 /filter     -> Chimiera detection and quality filtering output (first round QC reads)
-                                /bin        -> Extract reads and quality info for reads which pass QC
-                                
+                                /bin        -> Extract reads and quality info for reads which pass QC                
                            /PROK/           -> 16S binning and blastn files
-
                            /EUK/            -> 18S binning and blastn files
-
                            /merged/         -> final 'microbiome.tsv' file (labled with Phred used)
                                   /bin/     -> Processing files for normalisation, bias correction, scalling, and merging of 16S and 18S data
 
