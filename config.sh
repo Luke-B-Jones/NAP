@@ -11,7 +11,6 @@ export demux_needed="yes" # yes or no do you need demux step in dorado
 export norm_factor="100000" # Normalisation factor
 export max_depth="230000" # Recommend 'true max' + 20%
 # Phred scaling
-export phred_1000k="32" # Phred if input is >1 million reads
 export phred_500k="30" # Phred if input is >0.5 million reads
 export phred_300k="28" # Phred if input is >0.3 million reads
 export phred_200k="25" # Phred if input is >0.2 million reads
