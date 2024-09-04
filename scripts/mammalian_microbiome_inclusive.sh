@@ -62,6 +62,25 @@ python "$bracket_cut" "${out_dir}16s_reduced_${prefix}.fasta" "${out_dir}16s_unt
 python "$bracket_cut" "${out_dir}18s_reduced_${prefix}.fasta" "${out_dir}18s_untrim_${prefix}.fasta"
 
 echo "${su}${B}(3) Trimming reads to fit 515y 926r theoretical binding sites ${r}"
+# Source the current primer preset configuration
+if [ -f "${subconfig}/${amplicon_pre_set}.sh" ]; then
+    source "${subconfig}/${amplicon_pre_set}.sh"
+else
+    echo "${er}ERROR: Primer preset configuration file not found: ${subconfig}/${amplicon_pre_set}.sh, ensure the config is set correctly ${r}"
+    exit 1
+fi
+# Extract relevant primer sequences and ranges from the sourced preset
+forward_primer="$for_seq"
+reverse_primer="$rev_seq"
+forward_range="$for_range"
+reverse_range="$rev_range"
+# Make sure the variables were properly sourced
+if [ -z "$forward_primer" ] || [ -z "$reverse_primer" ] || [ -z "$forward_range" ] || [ -z "$reverse_range" ]; then
+    echo "${er}ERROR: One or more primer sequences/ranges are not set in ${subconfig}/${amplicon_pre_set}.sh, ensure your amplicon import is complete ${r}"
+    exit 1
+fi
+
+# Trim 16S sequences
 trimming_cores=$(echo "scale=0; ${all_cores} - 2" | bc)
-python "${CPU_515y_926r}" "${out_dir}16s_untrim_${prefix}.fasta" "${out_dir}16s_${prefix}.fasta" "${trimming_cores}"
-python "${CPU_515y_926r}" "${out_dir}18s_untrim_${prefix}.fasta" "${out_dir}18s_${prefix}.fasta" "${trimming_cores}"
+python "${CPU_trim_script}" "${out_dir}16s_untrim_${prefix}.fasta" "${out_dir}16s_${prefix}.fasta" "${trimming_cores}" "$forward_primer" "$reverse_primer" "$forward_range" "$reverse_range"
+python "${CPU_trim_script}" "${out_dir}18s_untrim_${prefix}.fasta" "${out_dir}18s_${prefix}.fasta" "${trimming_cores}" "$forward_primer" "$reverse_primer" "$forward_range" "$reverse_range"
