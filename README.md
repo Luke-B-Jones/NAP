@@ -10,9 +10,11 @@ By Luke B.Jones
 (1 of 3) Clone repo, and setup docker
 `````
 git clone https://github.com/Luke-B-Jones/NAP.git
-
+`````
+`````
 cd ./NAP
-
+`````
+`````
 # Replace: 'luke' with your user name
 docker build --build-arg USER_NAME=luke -t nap .
 `````
