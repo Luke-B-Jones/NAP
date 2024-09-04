@@ -19,7 +19,7 @@ docker build --build-arg USER_NAME=$USER -t nap .
 `````
 (2 of 3) Activate your image, and get going...
 `````
-docker run -it -v /home/$USER:/home/$USER nap
+docker run -it -v /home/$USER/Documents:/home/$USER/Documents nap
 `````
 (3 of 3) Use NAP
 `````
