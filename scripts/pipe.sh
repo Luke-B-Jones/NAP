@@ -175,7 +175,7 @@ python "$extract_nonchimeric" "${prep_b}/${id}_nonchimeric.fasta" "${prep_f}/${i
 input_count=$(grep -c '^@' "${prep_b}/${id}_nonchimeric.fastq")
 # 16S update
 echo "5,Binning 16S (${default_database_name} ${default_database_version})" > "${progress_file}" 
-echo "(5) Binning 16S: non-chimeric reads =${seq_count_filtered}, ${percentage_retained}% " >> "${log}"
+echo "(5) Binning 16S: ${input_count} non-chimeric reads" >> "${log}"
 # 16s BIN
 minimap2 -ax map-ont -B 4 -O 2,5 -E 2,1 -N 5 --secondary=no -s 200 -t "${cores}" -K "${CHUNK_SIZE}" "${fasta_16s_database}" "${prep_b}/${id}_nonchimeric.fastq" > "${prep_b}/16s_nonchimeric.sam" 2>> "${log}" || {
   echo "ERROR: failed to bin nonchimeric reads against the 16s database" >> "${log}";
@@ -183,7 +183,7 @@ minimap2 -ax map-ont -B 4 -O 2,5 -E 2,1 -N 5 --secondary=no -s 200 -t "${cores}"
 }
 # 18S update
 echo "6,Binning 18S (${default_database_name} ${default_database_version})" > "${progress_file}" 
-echo "(6) Binning 18S: non-chimeric reads =${seq_count_filtered}, ${percentage_retained}% " >> "${log}"
+echo "(6) Binning 18S: ${input_count} non-chimeric reads" >> "${log}"
 # 18s BIN
 minimap2 -ax map-ont -B 4 -O 2,5 -E 2,1 -N 5 --secondary=no -s 200 -t "${cores}" -K "${CHUNK_SIZE}" "${fasta_18s_database}" "${prep_b}/${id}_nonchimeric.fastq" > "${prep_b}/18s_nonchimeric.sam" 2>> "${log}" || {
   echo "ERROR: failed to bin nonchimeric reads against the 18s database" >> "${log}";
@@ -211,7 +211,7 @@ count_total=$(echo "scale=0; ($align_raw_16s + $align_raw_18s)" | bc)
 per_total=$(echo "scale=5; ($count_total/$input_count) * 100" | bc)
 duplicated_count=$(python "$duplicated_count" "${prep_b}/18s_CON.fastq" "${prep_b}/16s_CON.fastq")
 per_dup=$(echo "scale=5; ($duplicated_count/$count_total) * 100" | bc)
-echo "${duplicated_count} (${per_dup}%) duplicated in ${count_total} (${per_total}% O/T)" > "${progress_info}"
+echo "${duplicated_count} (${per_dup}%) duplicated in ${count_total} (${per_total}% of non-chimeric)" > "${progress_info}"
 echo "\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ BINNING //////////////////////////" >> "${log}"
 echo "  ${per_16s}% 16s ${per_18s}% 18s
   16s $input_count -> $align_raw_16s
@@ -238,9 +238,6 @@ rattle polish -i "${PROK}/consensi.fq" -o "${PROK}/" -t "${cores}" --summary >> 
   echo "ERROR: Rattle failed to polish 16s clusters" >> "${log}";
   exit 1;
 }
-seqtk seq -A "${PROK}/transcriptome.fq" > "${PROK}/clusters.fasta"
-hits_16s=$(grep -c '^>' "${PROK}/clusters.fasta" )
-#
 # Rattle 18s
 echo "9,Clustering and polishing 18S bin" > "${progress_file}" 
 echo "(9) Clustering and polishing 18S bin " >> "${log}"
@@ -256,11 +253,14 @@ rattle polish -i "${EUK}/consensi.fq" -o "${EUK}/" -t "${cores}" --summary >> "$
   echo "ERROR: Rattle failed to polish 18s clusters" >> "${log}";
   exit 1;
 }
-seqtk seq -A "${EUK}/transcriptome.fq" > "${EUK}/clusters.fasta"
-hits_18s=$(grep -c '^>' "${EUK}/clusters.fasta" )
 # Return to conda env
 source "/opt/miniconda/etc/profile.d/conda.sh"
 conda activate nap_env
+# Calc and convert
+seqtk seq -A "${PROK}/transcriptome.fq" > "${PROK}/clusters.fasta"
+hits_16s=$(grep -c '^>' "${PROK}/clusters.fasta" )
+seqtk seq -A "${EUK}/transcriptome.fq" > "${EUK}/clusters.fasta"
+hits_18s=$(grep -c '^>' "${EUK}/clusters.fasta" )
 #
 #
 # Taxanomiuc classification
