@@ -13,6 +13,7 @@ echo -e "///////////////////////////////////////////////////////////////////////
 mkdir -p "./${id}" # Create a directory for the sample ID
 cd "./${id}"
 # Get conda going and check for instilation issues
+source "/opt/miniconda/etc/profile.d/conda.sh"
 conda activate nap_env
 if ! conda activate nap_env > /dev/null 2>&1; then
   echo "ERROR: Failed to activate conda environment 'nap_env'."
@@ -215,6 +216,9 @@ echo "  ${per_16s}% 16s ${per_18s}% 18s
 # Rattle 16s
 echo "8,Clustering and polishing 16S bin" > "${progress_file}" 
 echo "(8) Clustering and polishing 16S bin " >> "${log}"
+# Return to gcc/g++ 9 env
+conda deactivate
+# Rattle
 rattle cluster -i "${prep_b}/16s_CON.fastq" -o "${PROK}/" -t "${cores}" -k 11 -s 0.84 -v 200 -B 0.84 -b 0.80 -f 0.05 --lower-length "$min_length" --upper-length "$max_length" --raw >> "${log}" 2>&1 || {
   echo "ERROR: Rattle failed to cluster 16s data" >> "${log}";
   exit 1;
@@ -247,7 +251,9 @@ rattle polish -i "${EUK}/consensi.fq" -o "${EUK}/" -t "${cores}" --summary >> "$
 }
 seqtk seq -A "${EUK}/transcriptome.fq" > "${EUK}/clusters.fasta"
 hits_18s=$(grep -c '^>' "${EUK}/clusters.fasta" )
-#
+# Return to conda env
+source "/opt/miniconda/etc/profile.d/conda.sh"
+conda activate nap_env
 #
 #
 # Taxanomiuc classification
