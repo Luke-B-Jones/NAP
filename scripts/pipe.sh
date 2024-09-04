@@ -47,9 +47,7 @@ if [ "${greedy_gpu}" = "true" ]; then
   source "${subconfig}/GPU-greedy.sh"
 fi
 # Setup amplicon configuration based on amplicon_pre_set
-if [ "${amplicon_pre_set}" = "515y-926r" ]; then
-  source "${subconfig}/AMP_515y-926r.sh"
-fi
+source "${subconfig}/${amplicon_pre_set}.sh"
 # Setup directories and locations
 prep_f="${current_dir}/${id}/QC/filter"
 prep_b="${current_dir}/${id}/QC/bining"
