@@ -224,9 +224,9 @@ if [ "$TOOL_NAME" = "import" ]; then
     read for_seq
     echo "Enter reverse sequence for database (e.g., CTTACCTTGTTACGACTT):"
     read rev_seq
-    echo "Enter forward primer binding range (e.g., 200,500; recommend extending higher value +20%):"
+    echo "Enter forward primer binding range (e.g., 200-500; recommend extending higher value +20%):"
     read for_range
-    echo "Enter reverse primer binding range (e.g., 600,1200; recommend extending lower value -20%):"
+    echo "Enter reverse primer binding range (e.g., 600-1200; recommend extending lower value -20%):"
     read rev_range
 
     # Function to update the configuration in the new file
