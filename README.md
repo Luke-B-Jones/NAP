@@ -1,4 +1,4 @@
-## ***NAP*** - Nanopore sequencing derived Amplicon Pipeline
+# ***NAP*** - Nanopore sequencing derived Amplicon Pipeline
 By Luke B.Jones
 
 ## **Requirments**
@@ -10,13 +10,15 @@ By Luke B.Jones
 (1 of 3) Clone repo, and setup docker
 `````
 git clone https://github.com/Luke-B-Jones/NAP.git
+
 cd ./NAP
-# Replace: WRITE_YOUR_USERNAME_HERE with your user name
-docker build --build-arg USER_NAME=WRITE_YOUR_USERNAME_HERE -t nap .
+
+# Replace: 'luke' with your user name
+docker build --build-arg USER_NAME=luke -t nap .
 `````
 (2 of 3) Activate your image, and get going...
 `````
-# Replace: /home/luke/Documents/data/rat_project:/home/luke/Documents/data/rat_project with the directory you need access to (where your data is)
+# Replace: dir:dir with the directory you need to access (where your data is)
 docker run -it -v /home/luke/Documents/data/rat_project:/home/luke/Documents/data/rat_project nap
 `````
 (3 of 3) Use NAP
