@@ -83,7 +83,7 @@ VOLUME /home/$USER_NAME/
 # Ensure correct permissions on the home directory
 RUN chown -R $USER_NAME:$USER_NAME /home/$USER_NAME/
 RUN chmod -R 777 /home/$USER_NAME/
-RUN chown -R chown -R $USER_NAME:$USER_NAME /opt/
+RUN chown -R $USER_NAME:$USER_NAME /opt/
 # Switch to the new user and set up their environment
 USER $USER_NAME
 WORKDIR /home/$USER_NAME
