@@ -53,6 +53,6 @@ Once again, setup for automation, list samples you wish to process sequencually,
 
 
 ## **THANKS TO:**
-JAMES SWIFT (BSc University of Bath): STATISTICAL ANALYSIS R SCRIPTS (AVAILBE IN THE FUTURE THANKS)
+JAMES SWIFT (BSc University of Bath): Wrote the R scripts usng in the 'stat' module
 
-MORGAN COCKRILL (Msc University of Bath): IMPROVING PIPE AND QC FUNCTIONALITY
+MORGAN COCKRILL (Msc University of Bath): Improved 'pipe' modules robustness and QC section
