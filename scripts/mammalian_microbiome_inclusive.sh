@@ -63,14 +63,13 @@ python "$bracket_cut" "${out_dir}18s_reduced_${prefix}.fasta" "${out_dir}18s_unt
 
 echo "${su}${B}(3) Trimming reads to fit 515y 926r theoretical binding sites ${r}"
 # Source the current primer preset configuration
-if [ -f "${subconfig}/${amplicon_pre_set}.sh" ]; then
-    source "${subconfig}/${amplicon_pre_set}.sh"
+if [ -f "${subconfig}/AMP_${amplicon_pre_set}.sh" ]; then
+    source "${subconfig}/AMP_${amplicon_pre_set}.sh"
 else
-    echo "${er}ERROR: Primer preset configuration file not found: ${subconfig}/${amplicon_pre_set}.sh, ensure the config is set correctly ${r}"
+    echo "${er}ERROR: Primer preset configuration file not found: ${subconfig}/AMP_${amplicon_pre_set}.sh, ensure the config is set correctly ${r}"
     exit 1
 fi
 # Extract relevant primer sequences and ranges from the sourced preset
-${subconfig}/AMP_${amplicon_pre_set}.sh
 forward_primer="$for_seq"
 reverse_primer="$rev_seq"
 forward_range="$for_range"
