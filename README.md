@@ -25,7 +25,7 @@ docker run -it -v /home/$USER/Documents:/home/$USER/Documents nap
 `````
 nap --help
 `````
-Optional: change the congif (Phred score, basecalling model...etc)
+Optional: change the config (Phred score, basecalling model...etc)
 `````
 nap configure -h
 `````
