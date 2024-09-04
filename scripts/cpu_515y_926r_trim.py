@@ -3,7 +3,6 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.Data import IUPACData
 from concurrent.futures import ProcessPoolExecutor, as_completed
-import multiprocessing
 
 def reverse_complement(seq):
     """Generate the reverse complement of a DNA sequence."""
@@ -28,7 +27,6 @@ def find_best_primer_hit(sequence, primers, start_range, end_range, min_identity
     # Add reverse complements of primers to the search list
     full_primers = primers + [reverse_complement(primer) for primer in primers]
 
-    # Initialize position variable
     positions = []
 
     for primer in full_primers:
@@ -53,32 +51,32 @@ def find_best_primer_hit(sequence, primers, start_range, end_range, min_identity
     return best_hit_position
 
 
-def process_sequence(record, primers_515Y, primers_926R, range_515Y, range_926R):
+def process_sequence(record, forward_primers, reverse_primers, forward_range, reverse_range, min_length):
     sequence = str(record.seq)
     sequence = replace_uracil_with_thymine(sequence)
     
     if sequence is None:
         return record  # Return untrimmed if there's an issue with the sequence
 
-    # Find the earliest 515Y primer hit within the specified range
-    start_pos = find_best_primer_hit(sequence, primers_515Y, range_515Y[0], range_515Y[1], find_earliest=True)
+    # Find the earliest forward primer hit within the specified range
+    start_pos = find_best_primer_hit(sequence, forward_primers, forward_range[0], forward_range[1], find_earliest=True)
     
     if start_pos != -1:
-        # Trim sequence before the best 515Y primer hit
+        # Trim sequence before the best forward primer hit
         sequence = sequence[start_pos:]
         
-        # Adjust the range for 926R search since sequence has been trimmed
-        range_926R_adjusted = (range_926R[0] - start_pos, range_926R[1] - start_pos)
+        # Adjust the range for reverse primer search since sequence has been trimmed
+        reverse_range_adjusted = (reverse_range[0] - start_pos, reverse_range[1] - start_pos)
         
-        # Find the latest 926R primer hit within the adjusted range
-        end_pos = find_best_primer_hit(sequence, primers_926R, range_926R_adjusted[0], range_926R_adjusted[1], find_earliest=False)
+        # Find the latest reverse primer hit within the adjusted range
+        end_pos = find_best_primer_hit(sequence, reverse_primers, reverse_range_adjusted[0], reverse_range_adjusted[1], find_earliest=False)
         
         if end_pos != -1:
-            # Trim sequence after the best 926R primer hit
-            trimmed_seq = sequence[:end_pos + len(primers_926R[0])]
+            # Trim sequence after the best reverse primer hit
+            trimmed_seq = sequence[:end_pos + len(reverse_primers[0])]
             
-            # Check if the trimmed sequence is at least 325bp long
-            if len(trimmed_seq) >= 325:
+            # Check if the trimmed sequence meets the minimum length requirement
+            if len(trimmed_seq) >= min_length:
                 record.seq = Seq(trimmed_seq)
                 return record
     
@@ -90,7 +88,7 @@ def update_progress(total_count, trimmed_count, total_records):
     percent_done = (total_count / total_records) * 100
     print(f"Processed {total_count} sequences, {trimmed_count} trimmed ({percent_done:.2f}% done)", end='\r')
 
-def trim_sequences(input_fasta, output_fasta, primers_515Y, primers_926R, range_515Y, range_926R, processes, batch_size=100):
+def trim_sequences(input_fasta, output_fasta, forward_primers, reverse_primers, forward_range, reverse_range, min_length, processes, batch_size=100):
     records = list(SeqIO.parse(input_fasta, "fasta"))
     total_records = len(records)
     trimmed_count = 0
@@ -100,7 +98,7 @@ def trim_sequences(input_fasta, output_fasta, primers_515Y, primers_926R, range_
         with ProcessPoolExecutor(max_workers=processes) as executor:
             futures = []
             for record in records:
-                futures.append(executor.submit(process_sequence, record, primers_515Y, primers_926R, range_515Y, range_926R))
+                futures.append(executor.submit(process_sequence, record, forward_primers, reverse_primers, forward_range, reverse_range, min_length))
                 
                 # Process in batches to keep things moving
                 if len(futures) >= batch_size:
@@ -134,32 +132,27 @@ def trim_sequences(input_fasta, output_fasta, primers_515Y, primers_926R, range_
     return trimmed_count, total_count - trimmed_count
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        print("Usage: python script.py <input_fasta> <output_fasta> <processes>")
+    if len(sys.argv) != 9:
+        print("Usage: python script.py <input_fasta> <output_fasta> <processes> <forward_primer> <reverse_primer> <forward_range> <reverse_range> <min_length>")
         sys.exit(1)
 
     input_fasta = sys.argv[1]
     output_fasta = sys.argv[2]
     processes = int(sys.argv[3])
+    
+    forward_primers = [sys.argv[4]]  # Forward primer sequence
+    reverse_primers = [sys.argv[5]]  # Reverse primer sequence
 
-    # Define primers
-    primers_515Y = [
-        "GTGYCAGCMGCCGCGGTAA",
-    ]
-
-    primers_926R = [
-        "CCGYCAATTYMTTTRAGTTT",
-    ]
-
-    # Define the range for each primer search
-    range_515Y = (300, 800)    # Search for 515Y primers between 300-800bp
-    range_926R = (650, 1500)   # Search for 926R primers between 650-1400bp
+    # Convert the passed ranges to integers
+    forward_range = tuple(map(int, sys.argv[6].split('-')))
+    reverse_range = tuple(map(int, sys.argv[7].split('-')))
+    
+    # Minimum sequence length
+    min_length = int(sys.argv[8])
 
     # Run the trimming process
-    trimmed_count, untrimmed_count = trim_sequences(input_fasta, output_fasta, primers_515Y, primers_926R, range_515Y, range_926R, processes)
+    trimmed_count, untrimmed_count = trim_sequences(input_fasta, output_fasta, forward_primers, reverse_primers, forward_range, reverse_range, min_length, processes)
 
     # Output the number of successfully trimmed and untrimmed sequences
     print(f"Successfully trimmed sequences: {trimmed_count}")
     print(f"Sequences left untrimmed: {untrimmed_count}")
-
-
