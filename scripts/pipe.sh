@@ -48,6 +48,15 @@ if [ "${greedy_gpu}" = "true" ]; then
 fi
 # Setup amplicon configuration based on amplicon_pre_set
 source "${subconfig}/AMP_${amplicon_pre_set}.sh"
+# Check database is setup corretly
+required_files=("fasta_18s_database" "fasta_16s_database" "blastn_16s_database" "blastn_18s_database" "fasta_filtered_database")
+for file_var in "${required_files[@]}"; do
+    file_path="${!file_var}"  # Get the actual file path from the variable name
+    if [ ! -s "$file_path" ]; then
+        echo "${er}ERROR:${in} $file_var ($file_path) is missing or empty, use 'nap update-database' ${r}"
+        exit 1
+    fi
+done
 # Setup directories and locations
 prep_f="${current_dir}/${id}/QC/filter"
 prep_b="${current_dir}/${id}/QC/bining"
