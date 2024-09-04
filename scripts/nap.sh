@@ -78,11 +78,7 @@ shift
 
 # Script 'nap dorado'
 if [ "$TOOL_NAME" = "dorado" ]; then
-  bash "${sub}/dorado.sh"
-fi
-# Script 'nap dorado-hq'
-if [ "$TOOL_NAME" = "dorado-auto" ]; then
-  bash "${sub}/dorado-auto.sh" "$1"
+  bash "${sub}/dorado.sh" "$1"
 fi
 # Script 'nap update-database'
 if [ "$TOOL_NAME" = "update-database" ]; then
