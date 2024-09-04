@@ -17,7 +17,7 @@ cd ./NAP
 `````
 docker build --build-arg USER_NAME=$USER -t nap .
 `````
-(2 of 3) Activate your image, and get going...
+(2 of 3) Activate your image (considering changing the direcotry to wherever your samples are) and get going...
 `````
 docker run -it -v /home/$USER/Documents:/home/$USER/Documents nap
 `````
