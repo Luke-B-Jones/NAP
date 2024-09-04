@@ -47,7 +47,7 @@ if [ "${greedy_gpu}" = "true" ]; then
   source "${subconfig}/GPU-greedy.sh"
 fi
 # Setup amplicon configuration based on amplicon_pre_set
-source "${subconfig}/${amplicon_pre_set}.sh"
+source "${subconfig}/AMP_${amplicon_pre_set}.sh"
 # Setup directories and locations
 prep_f="${current_dir}/${id}/QC/filter"
 prep_b="${current_dir}/${id}/QC/bining"
@@ -82,7 +82,7 @@ echo "Phred score auto set to: ${phred}" >> "${log}"
 #
 # FILTERING REA
 echo "1,Filtering and trimming (Q${phred}, $min_length-$max_length bases)" > "${progress_file}"
-echo "${input_count} reads; 100% O/T" > "${progress_info}"
+echo "${input_count} reads; 100% O/T, Phred=${phred}" > "${progress_info}"
 echo "(1) Filtering and trimming (Q${phred}, $min_length - $max_length bases): ${input_count} reads; 100%" >> "${log}"
 if [ ! -s "${raw_data}" ]; then
   echo "${er}ERROR:${in} Input file ${raw_data} is empty or does not exist ${r}"
