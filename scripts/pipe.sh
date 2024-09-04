@@ -328,7 +328,7 @@ python "${normalise}" "${merge_b}/${id}_18s_unbias.tsv" "${norm_factor}" "${merg
 # Merge
 python "${merge_16s_18s}" "${merge_b}/${id}_18s_microbiome.tsv" "${merge_b}/${id}_16s_microbiome.tsv" "${merge_o}/${id}_microbiome.tsv" "${log}"
 # python "${decontaminate}" "${merge_o}/${id}_microbiome.tsv" "${blank_microbiome}" "${decontamination_factor}"
-# python "{simplify_taxa}" "${merge_o}/${id}_microbiome.tsv"
+python "{simplify_taxa}" "${merge_o}/${id}_microbiome.tsv"
 # Log completion message
 echo "15,Pipeline complete: see ${merge_o}/${id}_Q${phred}_microbiome_CON.tsv" > "${progress_file}"
 # Wait for the Python script to finish before removing the progress file and exiting
