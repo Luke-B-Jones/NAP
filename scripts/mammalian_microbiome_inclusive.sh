@@ -70,6 +70,7 @@ else
     exit 1
 fi
 # Extract relevant primer sequences and ranges from the sourced preset
+${subconfig}/AMP_${amplicon_pre_set}.sh
 forward_primer="$for_seq"
 reverse_primer="$rev_seq"
 forward_range="$for_range"
@@ -78,7 +79,7 @@ ref_min_18s="$ref_min_length_18s"
 ref_min_16s="$ref_min_length_16s"
 # Ensure the required variables are set (including new min length variables)
 if [ -z "$for_seq" ] || [ -z "$rev_seq" ] || [ -z "$for_range" ] || [ -z "$rev_range" ] || [ -z "$ref_min_16s" ] || [ -z "$ref_min_18s" ]; then
-    echo "${er}ERROR: Missing primer sequences, ranges, or minimum length settings in ${subconfig}/${amplicon_pre_set}.sh${r}"
+    echo "${er}ERROR: Missing primer sequences, ranges, or minimum length settings in ${subconfig}/AMP_${amplicon_pre_set}.sh${r}"
     exit 1
 fi
 
