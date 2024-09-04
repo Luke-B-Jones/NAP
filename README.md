@@ -27,7 +27,7 @@ nap --help
 `````
 Optional: change the congif (Phred score, basecalling model...etc)
 `````
-nap configure variable_name=new_content.....
+nap configure -h
 `````
 
 ## **How to use:**
@@ -61,20 +61,14 @@ current_directory/
 (PIPE.sh)
 
 current_directory/sample_id/
-
-                           /prep/           -> Ongoing files for all QC and binning stages (Alighment, chimera filtration, binnning, bin refinment)
-                           
+                           /prep/           -> Ongoing files for all QC and binning stages (Alighment, chimera filtration, binnning, bin refinment
                                 /filter     -> Chimiera detection and quality filtering output (first round QC reads)
-                                
-                                /bin        -> Extract reads and quality info for reads which pass QC     
-                                
+                                /bin        -> Extract reads and quality info for reads which pass QC  
                            /PROK/           -> 16S binning and blastn files
-                           
                            /EUK/            -> 18S binning and blastn files
-                           
                            /merged/         -> final 'microbiome.tsv' file (labled with Phred used)
                            
-                                  /bin/     -> Processing files for normalisation, bias correction, scalling, and merging of 16S and 18S data
+/bin/     -> Processing files for normalisation, bias correction, scalling, and merging of 16S and 18S data
                                   
 
 (STAT.sh)
