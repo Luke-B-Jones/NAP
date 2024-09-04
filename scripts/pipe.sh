@@ -311,7 +311,7 @@ blastn -query "${prep_b}/${id}_nonchimeric.fasta"  -db "${EUK}/18S_CON" -out "${
 python "$reduce_to_abundance" "${EUK}/${id}_18s_RAWxCON.out" "${EUK}/${id}_18s_RAWxCON.tsv" >> "${log}" 2>&1
 # Count taxanomic units
 OTU_18s=$(wc -l < "${EUK}/${id}_18s_RAWxCON.out")
-OTU_16s=$(wc -l < "${EUK}/${id}_16s_RAWxCON.out")
+OTU_16s=$(wc -l < "${PROK}/${id}_16s_RAWxCON.out")
 #
 #
 #
