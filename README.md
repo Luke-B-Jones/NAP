@@ -48,32 +48,8 @@ Once again, setup for automation, list samples you wish to process sequencually,
 
 
 ## **Directory info:**
-(DORADO.SH)
+![pipeline_directory_layout](./bin/pipeline_directory_layout.png)
 
-current_directory/
-
-                 /pod5/                     -> Your preexisting data
-                 
-                 /demux/                    -> All demuxed data (barcodes and unassigned in fastq format)
-                 
-                 /raw_data/                 -> All fastq data associated with a barcode
-                 
-(PIPE.sh)
-
-current_directory/sample_id/
-                           /prep/           -> Ongoing files for all QC and binning stages (Alighment, chimera filtration, binnning, bin refinment
-                                /filter     -> Chimiera detection and quality filtering output (first round QC reads)
-                                /bin        -> Extract reads and quality info for reads which pass QC  
-                           /PROK/           -> 16S binning and blastn files
-                           /EUK/            -> 18S binning and blastn files
-                           /merged/         -> final 'microbiome.tsv' file (labled with Phred used)
-                           
-/bin/     -> Processing files for normalisation, bias correction, scalling, and merging of 16S and 18S data
-                                  
-
-(STAT.sh)
-
-current_directory/analysis_id/
 
 
 ## **THANKS TO:**
