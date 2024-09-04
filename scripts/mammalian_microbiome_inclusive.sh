@@ -74,13 +74,15 @@ forward_primer="$for_seq"
 reverse_primer="$rev_seq"
 forward_range="$for_range"
 reverse_range="$rev_range"
-# Make sure the variables were properly sourced
-if [ -z "$forward_primer" ] || [ -z "$reverse_primer" ] || [ -z "$forward_range" ] || [ -z "$reverse_range" ]; then
-    echo "${er}ERROR: One or more primer sequences/ranges are not set in ${subconfig}/${amplicon_pre_set}.sh, ensure your amplicon import is complete ${r}"
+ref_min_18s="$ref_min_length_18s"
+ref_min_16s="$ref_min_length_16s"
+# Ensure the required variables are set (including new min length variables)
+if [ -z "$for_seq" ] || [ -z "$rev_seq" ] || [ -z "$for_range" ] || [ -z "$rev_range" ] || [ -z "$ref_min_16s" ] || [ -z "$ref_min_18s" ]; then
+    echo "${er}ERROR: Missing primer sequences, ranges, or minimum length settings in ${subconfig}/${amplicon_pre_set}.sh${r}"
     exit 1
 fi
 
-# Trim 16S sequences
+# Pass these values to the Python script for trimming 16S and 18S sequences
 trimming_cores=$(echo "scale=0; ${all_cores} - 2" | bc)
-python "${CPU_trim_script}" "${out_dir}16s_untrim_${prefix}.fasta" "${out_dir}16s_${prefix}.fasta" "${trimming_cores}" "$forward_primer" "$reverse_primer" "$forward_range" "$reverse_range"
-python "${CPU_trim_script}" "${out_dir}18s_untrim_${prefix}.fasta" "${out_dir}18s_${prefix}.fasta" "${trimming_cores}" "$forward_primer" "$reverse_primer" "$forward_range" "$reverse_range"
+python "${CPU_trim_script}" "${out_dir}16s_untrim_${prefix}.fasta" "${out_dir}16s_${prefix}.fasta" "${trimming_cores}" "$forward_primer" "$reverse_primer" "$forward_range" "$reverse_range" "$ref_min_16s"
+python "${CPU_trim_script}" "${out_dir}18s_untrim_${prefix}.fasta" "${out_dir}18s_${prefix}.fasta" "${trimming_cores}" "$forward_primer" "$reverse_primer" "$forward_range" "$reverse_range" "$ref_min_18s"
