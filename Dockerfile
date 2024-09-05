@@ -45,7 +45,7 @@ RUN mkdir -p /opt/R
 RUN R -e "install.packages('shiny')"
 RUN R -e "install.packages('renv')"
 RUN R -e "install.packages('BiocManager')"
-RUN R -e "Sys.setenv(RENV_PATHS_LIBRARY='/opt/R'); BiocManager::install(version = '3.14'); renv::restore(lockfile = '/opt/NAP/renv.lock')"
+RUN R -e "Sys.setenv(RENV_PATHS_LIBRARY='/opt/R'); BiocManager::install(version = '3.10'); renv::restore(lockfile = '/opt/NAP/renv.lock')"
 RUN chmod -R 777 /opt/R
 
 # Clone RATTLE repository and initialize submodules
