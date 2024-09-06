@@ -210,6 +210,10 @@ if [ "$TOOL_NAME" = "import" ]; then
     read ref_min_length_16s
     echo "Enter minimum 18s amplicon legnth when trimming SILVA (e.g., 400):"
     read ref_min_length_18s
+    echo "Average 16S amplicon length (e.g., 400):"
+    amplicon_16s_length
+    echo "Average 18S amplicon length (e.g., 700):"
+    amplicon_18s_length
 
     # Function to update the configuration in the new file
     update_amp_config() {
@@ -239,6 +243,8 @@ if [ "$TOOL_NAME" = "import" ]; then
     update_amp_config "for_range" "$for_range" "$output_file"
     update_amp_config "ref_min_length_16s" "$ref_min_length_16s" "$output_file"
     update_amp_config "ref_min_length_18s" "$ref_min_length_18s" "$output_file"
+    update_amp_config "amplicon_16s_length" "$amplicon_16s_length" "$output_file"
+    update_amp_config "amplicon_18s_length" "$amplicon_18s_length" "$output_file"
     cat "$output_file"
     # Ask the user to check the file and press Enter to proceed
     read -p "${su}Please review, press Enter to continue.${r}"
