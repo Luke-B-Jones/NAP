@@ -52,16 +52,7 @@ export bracket_cut="${w_d}/bin/scripts/bracket_cut.py"                       # d
 export extract_nonchimeric="${w_d}/bin/scripts/extract_nonchimeric.py"       # Extract fastq non-chimeric using fasta non chimeric vsearch output
 export decontaminate="${w_d}/bin/scripts/decontaminate_tsv.py"               # Remove contmaintion from microibome tsv using blank
 export simplify_taxa="${w_d}/bin/scripts/simplify_taxa.py"                   # Cut kingdom-> <genus species> <- sub...
-# R scripts
-export barplot_R="${w_d}/bin/scripts/barplot.R"
-export co_network_R="${w_d}/bin/scripts/co_network.R"
-export controls_R="${w_d}/bin/scripts/controls.R"
-export data_R="${w_d}/bin/scripts/data.R"
-export density_R="${w_d}/bin/scripts/density.R"
-export heatmap_R="${w_d}/bin/scripts/heatmap.R"
-export pcoa_R="${w_d}/bin/scripts/pcoa.R"
-export themes_R="${w_d}/bin/scripts/themes.R"
-export treemap_R="${w_d}/bin/scripts/treemap.R"
+export plot_taxa="${w_d}/bin/scripts/plot_taxa.py"                           # Plot genus and species level stacked barchart
 # Text editing ASCII
 export in=$'\e[37m'  # Light gray colour INPUT
 export er=$'\033[0;31m'  # Red colour ERROR
