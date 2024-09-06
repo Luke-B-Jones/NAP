@@ -9,14 +9,10 @@ config_location="${w_d}/config.sh"
 function display_help() {
     echo "${in} Usage:${r} nap <tool> [options]...${r}
     Tools/Options:${r}
-        dorado  ${r}-${in} Basecalling and demultiplexing (dorado-auto to preload config settings) ${r}
-            -a ${r}-${in} Exracts kit/basecalling model from config ${r}
-            -m ${r}-${in} Manually input kit/model during run ${r}
         pipe  ${r}-${in} process 16s and 18s mixed amplicon samples ${r}
         update-database  ${r}-${in} update alighment database ${r} 
         configure ${r}-${in} Modify internal settings ${r} 
         import ${r}-${in} Setup a new primer-set/amplicon-type for use ${r}
-        stat ${r}-${in} Conduct basic statistical analyses, on sample and between samples ${r}
         --help  |  -h  ${r}- ${in} Print help info ${r}
         --version | -v  ${r}-${in} Print pipeline version ${r}"
 }
@@ -29,15 +25,6 @@ fi
 if [ "$1" = "--version" ] || [ "$1" = "-v" ]; then
     echo "${in}NAP - ${B}v$pipeline_version${r}"
     exit 0
-fi
-# DORADO
-if [[ "$1" == "dorado" ]]; then
-    if [[ "$2" == "-h" || "$2" == "--help" ]]; then
-        echo "${er} Usage:${in} nap dorado <mode> ${r}
-        (1)${in} Be in the directory containing your ./pod5/ ${r}
-        (2)${in} Choose <mode>: -a (auto) or -m (manual) ${r}"
-        exit 0
-    fi
 fi
 # PIPE
 if [[ "$1" == "pipe" ]]; then
@@ -55,7 +42,6 @@ if [[ "$1" == "update-database" ]]; then
         exit 0
     fi
 fi
-
 # Reconfigure
 if [[ "$1" == "configure" ]]; then
     if [[ "$2" == "-h" || "$2" == "--help" ]]; then
@@ -75,26 +61,9 @@ if [[ "$1" == "import" ]]; then
         exit 0
     fi
 fi
-# STAT
-if [[ "$1" == "stat" ]]; then
-    if [[ "$2" == "-h" || "$2" == "--help" ]]; then
-        echo "${er} Usage:${in} nap stat
-        STILL UNDER CONSTRUCTION...nothing to see here ${r}"        
-        exit 0
-    fi
-fi
-
 # Parse and initate scripts
 TOOL_NAME=$1
 shift
-# Script 'nap stat'
-if [ "$TOOL_NAME" = "stat" ]; then
-    echo "${er} STILL UNDER CONSTRUCTION...nothing to see here ${r}"  
-fi
-# Script 'nap dorado'
-if [ "$TOOL_NAME" = "dorado" ]; then
-  bash "${sub}/dorado.sh" "$1"
-fi
 # Script 'nap update-database'
 if [ "$TOOL_NAME" = "update-database" ]; then
   bash "${sub}/update-database.sh" "$1" "1"
