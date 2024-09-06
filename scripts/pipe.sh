@@ -73,16 +73,40 @@ mkdir -p ./logs
 # Autoset Phred (aiming for 50-200k reads with highest phred possible)
 if [ "${input_count}" -gt 500000 ]; then
     phred="${phred_500k}"
+    varients_scaling_variable="2.05"
+    clust_bit_star="0.845"
+    clust_bit_end="0.81"
+    clust_sim="0.848"
 elif [ "${input_count}" -gt 300000 ]; then
     phred="${phred_300k}"
+    varients_scaling_variable="2.1"
+    clust_bit_star="0.845"
+    clust_bit_end="0.81"
+    clust_sim="0.847"
 elif [ "${input_count}" -gt 200000 ]; then
     phred="${phred_200k}"
+    varients_scaling_variable="2.2"
+    clust_bit_star="0.843"
+    clust_bit_end="0.81"
+    clust_sim="0.846"
 elif [ "${input_count}" -gt 100000 ]; then
     phred="${phred_100k}"
+    varients_scaling_variable="2.35"
+    clust_bit_star="0.84"
+    clust_bit_end="0.8"
+    clust_sim="0.844"
 elif [ "${input_count}" -gt 50000 ]; then
     phred="${phred_50k}"
+    varients_scaling_variable="2.45"
+    clust_bit_star="0.84"
+    clust_bit_end="0.8"
+    clust_sim="0.84"
 else
     phred="${phred_fail}"
+    varients_scaling_variable="2.55"
+    clust_bit_star="0.82"
+    clust_bit_end="0.78"
+    clust_sim="0.83"
 fi
 echo "Phred score auto set to: ${phred}" >> "${log}"
 #
@@ -224,11 +248,12 @@ echo "(8) Clustering and polishing 16S bin " >> "${log}"
 # Return to gcc/g++ 9 env
 conda deactivate
 # Rattle
-rattle cluster -i "${prep_b}/16s_CON.fastq" -o "${PROK}/" -t "${cores}" -k 11 -s 0.84 -v 200 -B 0.84 -b 0.80 -f 0.05 --lower-length "$min_length" --upper-length "$max_length" --raw >> "${log}" 2>&1 || {
+max_16s_variance=$(echo "$amplicon_16s_length * "$varients_scaling_variable" | bc)
+rattle cluster -i "${prep_b}/16s_CON.fastq" -o "${PROK}/" -t "${cores}" -k 11 -s "${clust_sim}" -v "${max_16s_variance}" -B "${clust_bit_star}" -b "${clust_bit_end}" -f 0.05 --lower-length "$min_length" --upper-length "$max_length" --raw -t "${cores}" >> "${log}" 2>&1 || {
   echo "ERROR: Rattle failed to cluster 16s data" >> "${log}";
   exit 1;
 }
-rattle correct -i "${prep_b}/16s_CON.fastq" -c "${PROK}/clusters.out" -o "${PROK}/" -t "${cores}" -g 0.3 -m 0.35 -r 1 >> "${log}" 2>&1 || {
+rattle correct -i "${prep_b}/16s_CON.fastq" -c "${PROK}/clusters.out" -o "${PROK}/" -t "${cores}" -g 0.3 -m 0.33 -r 1 >> "${log}" 2>&1 || {
   echo "ERROR: Rattle failed to correct 16s data" >> "${log}";
   exit 1;
 }
@@ -239,11 +264,12 @@ rattle polish -i "${PROK}/consensi.fq" -o "${PROK}/" -t "${cores}" --summary >> 
 # Rattle 18s
 echo "9,Clustering and polishing 18S bin" > "${progress_file}" 
 echo "(9) Clustering and polishing 18S bin " >> "${log}"
-rattle cluster -i "${prep_b}/18s_CON.fastq" -o "${EUK}/" -t "${cores}" -k 11 -s 0.84 -v 200 -B 0.84 -b 0.80 -f 0.05 --lower-length "$min_length" --upper-length "$max_length" --raw >> "${log}" 2>&1 || {
+max_18s_variance=$(echo "$amplicon_18s_length * "$varients_scaling_variable" | bc)
+rattle cluster -i "${prep_b}/18s_CON.fastq" -o "${EUK}/" -t "${cores}" -k 11 -s "${clust_sim}" -v "${max_18s_variance}" -B "${clust_bit_star}" -b "${clust_bit_end}" -f 0.05 --lower-length "$min_length" --upper-length "$max_length" --raw -t "${cores}" >> "${log}" 2>&1 || {
   echo "ERROR: Rattle failed to cluster 18s data" >> "${log}";
   exit 1;
 }
-rattle correct -i "${prep_b}/18s_CON.fastq" -c "${EUK}/clusters.out" -o "${EUK}/" -t "${cores}" -g 0.3 -m 0.35 -r 1 >> "${log}" 2>&1 || {
+rattle correct -i "${prep_b}/18s_CON.fastq" -c "${EUK}/clusters.out" -o "${EUK}/" -t "${cores}" -g 0.3 -m 0.33 -r 1 >> "${log}" 2>&1 || {
   echo "ERROR: Rattle failed to correct 18s data" >> "${log}";
   exit 1;
 }
@@ -325,10 +351,10 @@ python "${normalise}" "${merge_b}/${id}_16s_unbias.tsv" "${norm_factor}" "${merg
 python "${normalise}" "${merge_b}/${id}_18s_unbias.tsv" "${norm_factor}" "${merge_b}/${id}_18s_microbiome.tsv" "${log}"
 # Merge
 python "${merge_16s_18s}" "${merge_b}/${id}_18s_microbiome.tsv" "${merge_b}/${id}_16s_microbiome.tsv" "${merge_b}/${id}_microbiome_full-tax.tsv" "${log}"
-# python "${decontaminate}" "${merge_o}/${id}_microbiome.tsv" "${blank_microbiome}" "${decontamination_factor}"
-python "{simplify_taxa}" "${merge_b}/${id}_microbiome_full-tax.tsv" "${merge_o}/${id}_microbiome.tsv"
+#python "${decontaminate}" "${merge_o}/${id}_microbiome.tsv" "${blank_microbiome}" "${decontamination_factor}"
+python "{simplify_taxa}" "${merge_b}/${id}_microbiome_full-tax.tsv" "${merge_o}/${id}_Q${phred}_microbiome.tsv"
 # Log completion message
-echo "15,Pipeline complete: see ${merge_o}/${id}_Q${phred}_microbiome_CON.tsv" > "${progress_file}"
+echo "15,Pipeline complete: see ${merge_o}/${id}_Q${phred}_microbiome.tsv" > "${progress_file}"
 # Wait for the Python script to finish before removing the progress file and exiting
 wait "${PYTHON_PID}"
 rm -f "${progress_file}" "${progress_info}"
