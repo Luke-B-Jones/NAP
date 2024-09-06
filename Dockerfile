@@ -50,14 +50,6 @@ RUN ./build.sh > build.log 2>&1 || { cat build.log; exit 1; }
 # Ensure full read/write/execute permissions for the RATTLE directory
 RUN chmod -R 777 /opt/RATTLE
 
-# Download and extract Dorado, set permissions, and export path
-RUN curl -LO https://cdn.oxfordnanoportal.com/software/analysis/dorado-0.7.3-linux-x64.tar.gz && \
-    tar -xzvf dorado-0.7.3-linux-x64.tar.gz -C /opt/ && \
-    rm dorado-0.7.3-linux-x64.tar.gz && \
-    DORADO_DIR=$(find /opt/ -maxdepth 1 -type d -name 'dorado*' | head -n 1) && \
-    chmod -R 777 "$DORADO_DIR" && \
-    echo "export PATH=\$PATH:$DORADO_DIR/bin" >> /etc/bash.bashrc
-
 # Install Miniconda
 ENV MINICONDA_VERSION=py38_23.1.0-1
 RUN curl -LO https://repo.anaconda.com/miniconda/Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh && \
