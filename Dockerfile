@@ -18,7 +18,6 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     sudo \
     bc \
-    r-base \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 # Set GCC and G++ to version 9 as the default
@@ -39,14 +38,6 @@ RUN chmod -R 777 /opt/NAP
 ENV NAP_DIR=/opt/NAP
 WORKDIR $NAP_DIR
 RUN ./build.sh $NAP_DIR > /home/$USER_NAME/build.log 2>&1 || { cat /home/$USER_NAME/build.log; exit 1; }
-
-# Setup R and library
-RUN mkdir -p /opt/R
-RUN R -e "install.packages('shiny')"
-RUN R -e "install.packages('renv')"
-RUN R -e "install.packages('BiocManager')"
-RUN R -e "Sys.setenv(RENV_PATHS_LIBRARY='/opt/R'); BiocManager::install(version = '3.10'); renv::restore(lockfile = '/opt/NAP/renv.lock')"
-RUN chmod -R 777 /opt/R
 
 # Clone RATTLE repository and initialize submodules
 RUN git clone --recurse-submodules https://github.com/comprna/RATTLE.git /opt/RATTLE
