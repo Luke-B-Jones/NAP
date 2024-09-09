@@ -11,14 +11,13 @@ def extract_genus_species(taxonomy):
     if len(levels) >= 2:
         genus = levels[-2].strip().capitalize()  # Capitalize the genus
         species = levels[-1].strip()
+        species_parts = species.split(' ')  # Split species by spaces to manage subspecies or strains
 
-        # Handle special cases for species
-        if "sp." in species.lower() or species.lower() == "sp":
-            return f'{genus} {species}'  # Keep 'sp' in the output with following characters
-        else:
-            # Return genus and species name, strip out any extra detail after species name
-            species = species.split(' ')[0]  # Take only the first part if species name is compound or followed by other descriptors
-            return f'{genus} {species}'
+        # Handle subspecies and strains by ignoring anything beyond the first two parts
+        # This will merge all subspecies and strains under the main species
+        if len(species_parts) > 1 and (species_parts[1].startswith('subsp.') or re.match(r'ATCC \d+', species_parts[1])):
+            species = species_parts[0]  # Only take the main species name
+        return f'{genus} {species}'
     elif len(levels) == 1:
         # Only one level, treat it as genus (or the whole taxonomy if it's unclear)
         return levels[0].capitalize()
