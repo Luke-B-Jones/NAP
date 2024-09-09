@@ -3,8 +3,8 @@
 export max_length="1200"
 export min_length="300"
 # Blastn CON
-export ident_CON_16s="95"
-export ident_CON_18s="95"
+export ident_CON_16s="92"
+export ident_CON_18s="92"
 # Blastn RAW
 export ident_RAW_16s="80"
 export ident_RAW_18s="80"
