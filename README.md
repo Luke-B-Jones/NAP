@@ -17,7 +17,7 @@ cd ./NAP
 `````
 docker build --build-arg USER_NAME=$USER -t nap .
 `````
-(2 of 3) Activate your image (considering changing the direcotry to wherever your samples are) and get going...
+(2 of 3) Activate your image (Change directory to where your samples are) and get going...
 `````
 docker run -it -v /home/$USER/Documents:/home/$USER/Documents nap
 `````
@@ -31,24 +31,10 @@ nap configure -h
 `````
 
 ## **How to use:**
-(1) Basecall and demux (optional)
-`````
-# Recomend: update the config with your basecalling settings and use automatic (-a), ensure your in same direcotry as ./pod5/
-'nap dorado -a/-m'
-`````
-Setup to automate the basecalling and demux (if needed) of samples. 
-NOTE, if you intend to skip this, ensure your fastq files are in ./raw_data/ when running nap pipe.
-(2) Process samples
-`````
-# NUM/PREFIX is unique identifier of your fastq, for example, if you demux and sample 1 is SQK-NBD114-24_barcode02.fastq, use 'nap pipe 02 1'
-'nap pipe NUM/PREFIX ID'
-`````
-Once again, setup for automation, list samples you wish to process sequencually, including the fastq number and asscioted sample ID.
+\\\\\\\\\\\ UNDER CONSTRUCTION \\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 
 
-## **Directory info:**
-![pipeline_directory_layout](./pipeline_directory_layout.png)
 
 
 
