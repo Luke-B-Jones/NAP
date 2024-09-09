@@ -153,7 +153,7 @@ fi
 
 # nap import <name>
 if [ "$TOOL_NAME" = "import" ]; then
-    template_file="${subconfig}AMP_template.sh"
+    template_file="${subconfig}/AMP_template.sh"
     if [ ! -f "$template_file" ]; then
         echo "${er}ERROR:${in} Template file not found: ${template_file} ${r}"
         exit 1
@@ -166,38 +166,39 @@ if [ "$TOOL_NAME" = "import" ]; then
     output_file="${w_d}/bin/scripts/AMP_${primer_set}.sh"
     cp "$template_file" "$output_file"
     # Prompt for user input to populate the variables
-    echo "Enter maximum length filter (e.g., 1200; recommend max length +25%):"
+    echo "${or}Enter maximum length filter (e.g., 1200; recommend max length +25%): ${r}"
     read max_length
-    echo "Enter minimum length filter (e.g., 150; recommend min length -10%):"
+    echo "${or}Enter minimum length filter (e.g., 150; recommend min length -10%): ${r}"
     read min_length
-    echo "Enter Blastn CON 16s identity threshold (default 95):"
+    echo "${or}Enter Blastn CON 16s identity threshold (default 95): ${r}"
     read ident_CON_16s
-    echo "Enter Blastn CON 18s identity threshold (default 95):"
+    echo "${or}Enter Blastn CON 18s identity threshold (default 95): ${r}"
     read ident_CON_18s
-    echo "Enter Blastn RAW 16s identity threshold (default 80):"
+    echo "${or}Enter Blastn RAW 16s identity threshold (default 80): ${r}"
     read ident_RAW_16s
-    echo "Enter Blastn RAW 18s identity threshold (default 80):"
+    echo "${or}Enter Blastn RAW 18s identity threshold (default 80): ${r}"
     read ident_RAW_18s
-    echo "Enter (relative) bias correction factor for 16s (e.g., 1):"
+    echo "${or}Enter (relative) bias correction factor for 16s (e.g., 1): ${r}"
     read bias_factor_16s
-    echo "Enter (relative) bias correction factor for 18s (e.g., 2):"
+    echo "${or}Enter (relative) bias correction factor for 18s (e.g., 2): ${r}"
     read bias_factor_18s
-    echo "Enter forward sequence for database (e.g., AGAGTTTGATCCTGGCTCAG):"
+    echo "${or}Enter forward sequence for database (e.g., AGAGTTTGATCCTGGCTCAG): ${r}"
     read for_seq
-    echo "Enter reverse sequence for database (e.g., CTTACCTTGTTACGACTT):"
+    echo "${or}Enter reverse sequence for database (e.g., CTTACCTTGTTACGACTT): ${r}"
     read rev_seq
-    echo "Enter forward primer binding range (e.g., 200-500; recommend extending higher value +20%):"
+    echo "${or}Enter forward primer binding site range (e.g., 200-500; recommend extending higher value +20%): ${r}"
     read for_range
-    echo "Enter reverse primer binding range (e.g., 600-1200; recommend extending lower value -20%):"
+    echo "${or}Enter reverse primer binding site range (e.g., 600-1200; recommend extending lower value -20%): ${r}"
     read rev_range
-    echo "Enter minimum 16s amplicon legnth when trimming SILVA (e.g., 300):"
+    echo "${or}Enter minimum 16s amplicon length when trimming SILVA (e.g., 300): ${r}"
     read ref_min_length_16s
-    echo "Enter minimum 18s amplicon legnth when trimming SILVA (e.g., 400):"
+    echo "${or}Enter minimum 18s amplicon length when trimming SILVA (e.g., 400): ${r}"
     read ref_min_length_18s
-    echo "Average 16S amplicon length (e.g., 400):"
-    amplicon_16s_length
-    echo "Average 18S amplicon length (e.g., 700):"
-    amplicon_18s_length
+    echo "${or}Average 16S amplicon length (e.g., 400): ${r}"
+    read amplicon_16s_length
+    echo "${or}Average 18S amplicon length (e.g., 700): ${r}"
+    read amplicon_18s_length
+
 
     # Function to update the configuration in the new file
     update_amp_config() {
@@ -225,6 +226,7 @@ if [ "$TOOL_NAME" = "import" ]; then
     update_amp_config "for_seq" "$for_seq" "$output_file"
     update_amp_config "rev_seq" "$rev_seq" "$output_file"
     update_amp_config "for_range" "$for_range" "$output_file"
+    update_amp_config "rev_range" "$rev_range" "$output_file"
     update_amp_config "ref_min_length_16s" "$ref_min_length_16s" "$output_file"
     update_amp_config "ref_min_length_18s" "$ref_min_length_18s" "$output_file"
     update_amp_config "amplicon_16s_length" "$amplicon_16s_length" "$output_file"
