@@ -6,8 +6,8 @@ export min_length="300"
 export ident_CON_16s="92"
 export ident_CON_18s="92"
 # Blastn RAW
-export ident_RAW_16s="80"
-export ident_RAW_18s="80"
+export ident_RAW_16s="85"
+export ident_RAW_18s="85"
 # Bias correction
 export bias_factor_16s="1"
 export bias_factor_18s="2"
