@@ -4,7 +4,7 @@ def calculate_identity(as_score, read_length):
     """Calculate identity as (AS:i / 2) / read length."""
     return (as_score / 2) / read_length
 
-def process_sam_file(sam_file, fastq_output, identity_threshold=0.80, dup_identity_threshold=0.95):
+def process_sam_file(sam_file, fastq_output, identity_threshold=0.70, dup_identity_threshold=0.95):
     """Process SAM file and output to FASTQ if identity threshold is met, handle duplicates."""
     reads = {}
     
