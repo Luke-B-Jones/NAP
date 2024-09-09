@@ -66,6 +66,3 @@ axes[1].legend(species_df['species'], bbox_to_anchor=(1.05, 1), loc='upper left'
 # Adjust layout and save the plot
 plt.tight_layout()
 plt.savefig(args.output_file, dpi=300)
-
-# Open the image after saving
-os.system(f'xdg-open {args.output_file}')
