@@ -115,7 +115,6 @@ if [ "$TOOL_NAME" = "pipe" ]; then
     echo -e "${in}Log file created: ${log_file} ${r}"
 fi
 
-# nap configure <var_name> <new_content> or nap configure -c
 if [ "$TOOL_NAME" = "configure" ]; then
     # Function to update the config
     update_config() {
@@ -129,43 +128,28 @@ if [ "$TOOL_NAME" = "configure" ]; then
             echo "Updated ${var_name} to ${new_value}"
         else
             # Variable not found, print an error
-            echo "${er}ERROR:${in} Variable ${var_name} not found in config, check spelling? ${r}"
+            echo "${er}ERROR:${in} Variable ${var_name} not found in config. Check spelling ${r}"
         fi
     }
-
-    # Function to display the config file
-    display_config() {
-        echo "Current configuration:"
-        cat "$config_location"
-    }
-
-    # Check for the -c option
-    if [ "$1" = "-c" ]; then
-        display_config
-        exit 0
-    fi
-
-    # Loop through the arguments and update configs
-    shift  # Skip the 'configure' argument
     while [ $# -gt 0 ]; do
-        var_name=$1   # First argument is the variable name
-        new_value=$2  # Second argument is the new value
+        arg=$1
         
-        # Check if we have both a variable name and new value
-        if [ -n "$var_name" ] && [ -n "$new_value" ]; then
+        if [[ "$arg" =~ ^([^=]+)=(.*)$ ]]; then
+            var_name="${BASH_REMATCH[1]}"
+            new_value="${BASH_REMATCH[2]}"
             update_config "$var_name" "$new_value"
         else
-            echo "${er}ERROR:${in} Missing variable name or new value, 'var_name=new_value' expected ${r}"
+            echo "${er}ERROR:${in} Invalid format. Use 'var_name=new_value' ${r}"
+            break  # prevent spam
         fi
-
-        # Shift by 2 to move to the next variable and value pair
-        shift 2
+        
+        shift  # Move to the next argument
     done
 
-    # Echo a confirmation message and the entire configuration file for verification
-    echo "${su}Reconfiguration complete: ${r}"
     cat "$config_location"
+    echo "${su}Reconfiguration complete: ${r}"
 fi
+
 
 # nap import <name>
 if [ "$TOOL_NAME" = "import" ]; then
