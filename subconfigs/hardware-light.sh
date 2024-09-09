@@ -22,7 +22,7 @@ if [ "$para_RAM" -lt 5 ]; then
 fi
 
 # Ensure para_cores is at least 2
-if [ "$para_cores" -lt 2 ]; then
+if [ "$para_cores" -lt 1 ]; then
     para_cores=2
 fi
 
