@@ -248,7 +248,7 @@ echo "(8) Clustering and polishing 16S bin " >> "${log}"
 # Return to gcc/g++ 9 env
 conda deactivate
 # Rattle
-max_16s_variance=$(echo "$amplicon_16s_length * "$varients_scaling_variable" | bc)
+max_16s_variance=$(echo "$amplicon_16s_length" * "$varients_scaling_variable" | bc)
 rattle cluster -i "${prep_b}/16s_CON.fastq" -o "${PROK}/" -t "${cores}" -k 11 -s "${clust_sim}" -v "${max_16s_variance}" -B "${clust_bit_star}" -b "${clust_bit_end}" -f 0.05 --lower-length "$min_length" --upper-length "$max_length" --raw >> "${log}" 2>&1 || {
   echo "ERROR: Rattle failed to cluster 16s data" >> "${log}";
   exit 1;
@@ -264,7 +264,7 @@ rattle polish -i "${PROK}/consensi.fq" -o "${PROK}/" -t "${cores}" --summary >> 
 # Rattle 18s
 echo "9,Clustering and polishing 18S bin" > "${progress_file}" 
 echo "(9) Clustering and polishing 18S bin " >> "${log}"
-max_18s_variance=$(echo "$amplicon_18s_length * "$varients_scaling_variable" | bc)
+max_18s_variance=$(echo "$amplicon_18s_length" * "$varients_scaling_variable" | bc)
 rattle cluster -i "${prep_b}/18s_CON.fastq" -o "${EUK}/" -t "${cores}" -k 11 -s "${clust_sim}" -v "${max_18s_variance}" -B "${clust_bit_star}" -b "${clust_bit_end}" -f 0.05 --lower-length "$min_length" --upper-length "$max_length" --raw >> "${log}" 2>&1 || {
   echo "ERROR: Rattle failed to cluster 18s data" >> "${log}";
   exit 1;
@@ -316,7 +316,7 @@ echo "(12) Blasting RAW data against 16S CON" >> "${log}"
 echo "$align_raw_16s in $hits_16s 16S hits" > "${progress_info}"
 python "$generate_con_database" "${PROK}/${id}_16s_blast_consensus.out" "${PROK}/clusters.fasta" "${PROK}/16s_CON_database.fasta" >> "${log}" 2>&1
 makeblastdb -in "${PROK}/16s_CON_database.fasta" -dbtype nucl -out "${PROK}/16S_CON/" -title "16S_CON" >> "${log}" 2>&1
-blastn -query "${prep_b}/${id}_nonchimeric.fasta" -db "${PROK}/16S_CON" -out "${PROK}/${id}_16s_RAWxCON.out" -reward 8 -penalty -10 -gapopen 6 -gapextend 10 -max_target_seqs 1 -perc_identity "${ident_RAW_16s}" -evalue 1e-30 -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore stitle" -num_threads "${cores}" 2>> "${log}" || {
+blastn -query "${prep_b}/16s_CON.fasta" -db "${PROK}/16S_CON" -out "${PROK}/${id}_16s_RAWxCON.out" -reward 8 -penalty -10 -gapopen 6 -gapextend 10 -max_target_seqs 1 -perc_identity "${ident_RAW_16s}" -evalue 1e-30 -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore stitle" -num_threads "${cores}" 2>> "${log}" || {
   echo "ERROR: Blastn failed w/ raw 16S bin" >> "${log}";
   exit 1;
 }
@@ -328,7 +328,7 @@ echo "(13) Blasting RAW data against 18S CON" >> "${log}"
 echo "$align_raw_18s in $hits_18s 18S hits" > "${progress_info}"
 python "$generate_con_database" "${EUK}/${id}_18s_blast_consensus.out" "${EUK}/clusters.fasta" "${EUK}/18s_CON_database.fasta" >> "${log}" 2>&1
 makeblastdb -in "${EUK}/18s_CON_database.fasta" -dbtype nucl -out "${EUK}/18S_CON/" -title "18S_CON" >> "${log}" 2>&1
-blastn -query "${prep_b}/${id}_nonchimeric.fasta"  -db "${EUK}/18S_CON" -out "${EUK}/${id}_18s_RAWxCON.out" -reward 8 -penalty -10 -gapopen 6 -gapextend 10 -max_target_seqs 1 -perc_identity "${ident_RAW_18s}" -evalue 1e-30 -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore stitle" -num_threads "${cores}" 2>> "${log}" || {
+blastn -query "${prep_b}/18s_CON.fasta"  -db "${EUK}/18S_CON" -out "${EUK}/${id}_18s_RAWxCON.out" -reward 8 -penalty -10 -gapopen 6 -gapextend 10 -max_target_seqs 1 -perc_identity "${ident_RAW_18s}" -evalue 1e-30 -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore stitle" -num_threads "${cores}" 2>> "${log}" || {
   echo "ERROR: Blastn failed w/ raw 18S bin" >> "${log}";
   exit 1;
 }
