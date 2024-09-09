@@ -1,58 +1,49 @@
-import sys
 import pandas as pd
 import re
+import sys
 
-def extract_genus_species(taxonomy):
-    """Extracts the 'genus species' from the taxonomy string, ensuring proper formatting."""
-    # Remove any bracketed terms
-    cleaned_taxonomy = re.sub(r'\[.*?\]', '', taxonomy).strip()
-    levels = cleaned_taxonomy.split(';')
-
-    # Check if we have at least genus and species levels
-    if len(levels) >= 2:
-        genus = levels[-2].strip().capitalize()  # Extract and capitalize the genus
-        species = levels[-1].strip()  # Extract the species
-
-        # Handle cases like "sp." or "sp"
-        if species.lower() == "sp" or "sp." in species.lower():
-            return f'{genus} sp'  # Return "Genus sp" for species "sp"
-        else:
-            species_parts = species.split(' ')
-            return f'{genus} {species_parts[0]}'  # Return "Genus Species", ignoring any additional description
-
-    elif len(levels) == 1:
-        # If only one level, treat it as the genus
-        return levels[0].capitalize()
+# Function to clean and process the taxonomy
+def clean_taxonomy(taxonomy):
+    # Remove brackets
+    taxonomy = re.sub(r'[\(\)\[\]\{\}]', '', taxonomy)
     
-    return cleaned_taxonomy.capitalize()  # Use the whole taxonomy if shorter than expected
+    # Split taxonomy into levels and extract genus and species
+    parts = taxonomy.strip().split(';')
+    genus_species = parts[-1].strip()
+    
+    # Handle "sp" cases: if second word is "sp", retain it, otherwise trim after genus and species
+    genus_species_split = genus_species.split()
+    if len(genus_species_split) > 1 and genus_species_split[1] == 'sp':
+        genus_species = ' '.join(genus_species_split[:2])  # Keep "Genus sp"
+    else:
+        genus_species = ' '.join(genus_species_split[:2])  # Only keep Genus and Species
+    
+    # Return cleaned taxonomy path with genus and species
+    return ';'.join(parts[:-1]) + ';' + genus_species
 
+# Load the TSV file
 def process_tsv(input_file, output_file):
-    """Reads a TSV, processes the taxonomy to extract genus and species, and writes the sum of abundances."""
-    try:
-        df = pd.read_csv(input_file, sep='\t')
-    except FileNotFoundError:
-        print(f"Error: File '{input_file}' not found.")
-        sys.exit(1)
-    except pd.errors.EmptyDataError:
-        print(f"Error: File '{input_file}' is empty.")
-        sys.exit(1)
+    # Load TSV
+    df = pd.read_csv(input_file, sep='\t')
 
-    # Ensure necessary columns are present
-    if 'taxonomy' not in df.columns or 'abundance' not in df.columns:
-        print("Error: Input file must contain 'taxonomy' and 'abundance' columns.")
-        sys.exit(1)
+    # Remove brackets from the taxonomy column and clean taxonomy
+    df['taxonomy'] = df['taxonomy'].apply(clean_taxonomy)
 
-    # Apply taxonomy extraction
-    df['genus_species'] = df['taxonomy'].apply(extract_genus_species)
+    # Group by taxonomy without case normalization and merge abundance, ignoring case
+    df['taxonomy_lower'] = df['taxonomy'].str.lower()  # Create a lowercase version for comparison
+    df_grouped = df.groupby('taxonomy_lower', as_index=False).agg(
+        {'taxonomy': 'first', 'abundance': 'sum'}
+    )
 
-    # Sum abundances for the same genus-species combinations
-    summed_abundance = df.groupby('genus_species')['abundance'].sum().reset_index()
+    # Sort by abundance in descending order
+    df_grouped = df_grouped.sort_values(by='abundance', ascending=False)
 
-    # Write the output to a new TSV file
-    summed_abundance.columns = ['taxonomy', 'abundance']
-    summed_abundance.to_csv(output_file, sep='\t', index=False)
+    # Output the result as TSV
+    df_grouped[['taxonomy', 'abundance']].to_csv(output_file, sep='\t', index=False)
 
-if __name__ == "__main__":
+# Main function to handle command line arguments
+if __name__ == '__main__':
+    # Ensure two arguments are provided: input and output file paths
     if len(sys.argv) != 3:
         print("Usage: python script.py <input_file> <output_file>")
         sys.exit(1)
@@ -60,4 +51,5 @@ if __name__ == "__main__":
     input_file = sys.argv[1]
     output_file = sys.argv[2]
 
+    # Process the TSV file
     process_tsv(input_file, output_file)
