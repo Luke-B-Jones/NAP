@@ -249,7 +249,7 @@ echo "(8) Clustering and polishing 16S bin " >> "${log}"
 conda deactivate
 # Rattle
 max_16s_variance=$(echo "$amplicon_16s_length * "$varients_scaling_variable" | bc)
-rattle cluster -i "${prep_b}/16s_CON.fastq" -o "${PROK}/" -t "${cores}" -k 11 -s "${clust_sim}" -v "${max_16s_variance}" -B "${clust_bit_star}" -b "${clust_bit_end}" -f 0.05 --lower-length "$min_length" --upper-length "$max_length" --raw -t "${cores}" >> "${log}" 2>&1 || {
+rattle cluster -i "${prep_b}/16s_CON.fastq" -o "${PROK}/" -t "${cores}" -k 11 -s "${clust_sim}" -v "${max_16s_variance}" -B "${clust_bit_star}" -b "${clust_bit_end}" -f 0.05 --lower-length "$min_length" --upper-length "$max_length" --raw >> "${log}" 2>&1 || {
   echo "ERROR: Rattle failed to cluster 16s data" >> "${log}";
   exit 1;
 }
@@ -265,7 +265,7 @@ rattle polish -i "${PROK}/consensi.fq" -o "${PROK}/" -t "${cores}" --summary >> 
 echo "9,Clustering and polishing 18S bin" > "${progress_file}" 
 echo "(9) Clustering and polishing 18S bin " >> "${log}"
 max_18s_variance=$(echo "$amplicon_18s_length * "$varients_scaling_variable" | bc)
-rattle cluster -i "${prep_b}/18s_CON.fastq" -o "${EUK}/" -t "${cores}" -k 11 -s "${clust_sim}" -v "${max_18s_variance}" -B "${clust_bit_star}" -b "${clust_bit_end}" -f 0.05 --lower-length "$min_length" --upper-length "$max_length" --raw -t "${cores}" >> "${log}" 2>&1 || {
+rattle cluster -i "${prep_b}/18s_CON.fastq" -o "${EUK}/" -t "${cores}" -k 11 -s "${clust_sim}" -v "${max_18s_variance}" -B "${clust_bit_star}" -b "${clust_bit_end}" -f 0.05 --lower-length "$min_length" --upper-length "$max_length" --raw >> "${log}" 2>&1 || {
   echo "ERROR: Rattle failed to cluster 18s data" >> "${log}";
   exit 1;
 }
