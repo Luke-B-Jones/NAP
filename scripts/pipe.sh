@@ -345,7 +345,7 @@ echo "14,Normalising, bias correcting, and merging data" > "${progress_file}"
 echo "(14) Blasting 16S bin" >> "${log}"
 echo "$OTU_16s 16S and $OTU_18s 18S microbes identified" > "${progress_info}"
 # Count total reads and normalize
-total_abundance=$(echo 'scale=0; $OTU_18s + $OTU_16s | bc')
+total_abundance=$(echo "$OTU_18s + $OTU_16s" | bc)
 python "${normalise}" "${PROK}/${id}_16s_RAWxCON.tsv" "${norm_factor}" "${merge_b}/${id}_16s_norm_bias.tsv" "${log}" "$total_abundance"
 python "${normalise}" "${PROK}/${id}_18s_RAWxCON.tsv" "${norm_factor}" "${merge_b}/${id}_18s_norm_bias.tsv" "${log}" "$total_abundance"
 # Bias correction
