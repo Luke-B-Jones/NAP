@@ -198,6 +198,8 @@ if [ "$TOOL_NAME" = "import" ]; then
     read amplicon_16s_length
     echo "${or}Average 18S amplicon length (e.g., 700): ${r}"
     read amplicon_18s_length
+    echo "${or}Type of primer (16s-18s;16s;18s): ${r}"
+    read type
 
 
     # Function to update the configuration in the new file
@@ -231,6 +233,8 @@ if [ "$TOOL_NAME" = "import" ]; then
     update_amp_config "ref_min_length_18s" "$ref_min_length_18s" "$output_file"
     update_amp_config "amplicon_16s_length" "$amplicon_16s_length" "$output_file"
     update_amp_config "amplicon_18s_length" "$amplicon_18s_length" "$output_file"
+    update_amp_config "type" "$type" "$output_file"
+
     cat "$output_file"
     # Ask the user to check the file and press Enter to proceed
     read -p "${su}Please review, press Enter to continue.${r}"
