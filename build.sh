@@ -40,7 +40,4 @@ echo "# Generating $default_database_name v$default_database_version database (3
 cd "${loc}/bin/databases/"
 wget -O SILVA_138.2_SSU_NR99.fasta.gz "https://www.arb-silva.de/fileadmin/silva_databases/release_138_2/Exports/SILVA_138.2_SSURef_NR99_tax_silva.fasta.gz" || { echo "ERROR: Failed to download SILVA database"; exit 1; }
 gzip -d SILVA_138.2_SSU_NR99.fasta.gz
-SILVA_prefix="SILVA_138.2_SSU_NR99"
-# Create databases in manual (0)
-bash /opt/NAP/bin/scripts/update-database.sh "$SILVA_prefix" "0"
 echo "# $pipeline_name $pipeline_version setup complete (4 of 4)"
