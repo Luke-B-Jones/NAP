@@ -29,8 +29,6 @@ update_config() {
 # Update config
 thread_count=$(nproc)
 ram_bytes=$(free -b | awk '/^Mem:/{print $2}')
-update_config "w_d" "$loc"
-update_config "pipeline_version" "$NAP_version"
 update_config "all_cores" "$thread_count"
 update_config "all_RAM" "$ram_bytes"
 update_config "w_d" "$loc"
