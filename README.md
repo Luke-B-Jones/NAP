@@ -7,7 +7,7 @@ By Luke B.Jones
 (2) PC capable of handleing large datasets (or alternatively, alot of free time), recommend >20GB RAM, GPU, and CPU with >4 cores
 
 ## **How to setup:**
-(1 of 3) Clone repo, and setup docker
+(1 of 4) Clone repo, and setup docker
 `````
 git clone https://github.com/Luke-B-Jones/NAP.git
 `````
@@ -17,17 +17,17 @@ cd ./NAP
 `````
 docker build --build-arg USER_NAME=$USER -t nap .
 `````
-(2 of 3) Activate your image (Change directory to where your samples are) and get going...
+(2 of 4) Activate your image (Change directory to where your samples are) and get going...
 `````
 docker run -it -v /home/$USER/Documents:/home/$USER/Documents nap
 `````
-(3 of 3) Use NAP
+(3 of 4) Inspect config and choose your primer set
 `````
-nap --help
+nap configure amplicon_pre_set=515y-926r
 `````
-Optional: change the config (Phred score, basecalling model...etc)
+(4 of 4) Build database based on primer selected
 `````
-nap configure -h
+nap update-database SILVA_138.2_SSU_NR99
 `````
 
 ## **How to use:**
