@@ -52,7 +52,7 @@ awk -v out_dir="${out_dir}" -v prefix="${prefix}" '
 }
 ' "${input}"
 
-echo "${su}${B}(2) Simplifying taxanomy to species level, minimising uncultured species, and depopulating highly replciated species to remove blastn consensus bias ${r}"
+echo "${su}${B}(2) Simplifying taxanomy to species level, minimising uncultured species in populated genera ${r}"
 # Final refinement using Python script, filter out 'uncultured' species when number of specues is >NUM_1 and proportion of culutered:total is <NUM_2
 python "$remove_uncultured" "${out_dir}16s_expanded_${prefix}.fasta" "1" "0.05" "${out_dir}16s_reduced_${prefix}.fasta" 
 python "$remove_uncultured" "${out_dir}18s_expanded_${prefix}.fasta" "1" "0.05" "${out_dir}18s_reduced_${prefix}.fasta"
@@ -61,7 +61,7 @@ python "$remove_uncultured" "${out_dir}18s_expanded_${prefix}.fasta" "1" "0.05" 
 python "$bracket_cut" "${out_dir}16s_reduced_${prefix}.fasta" "${out_dir}16s_untrim_${prefix}.fasta"
 python "$bracket_cut" "${out_dir}18s_reduced_${prefix}.fasta" "${out_dir}18s_untrim_${prefix}.fasta"
 
-echo "${su}${B}(3) Trimming reads to fit 515y 926r theoretical binding sites ${r}"
+echo "${su}${B}(3) Trimming reads to fit ${amplicon_pre_set} theoretical binding sites ${r}"
 # Source the current primer preset configuration
 if [ -f "${subconfig}/AMP_${amplicon_pre_set}.sh" ]; then
     source "${subconfig}/AMP_${amplicon_pre_set}.sh"
