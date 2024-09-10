@@ -6,7 +6,7 @@ if [ ! -f config.sh ]; then
     exit 1
 fi
 # Capture NAP directory and version
-loc="$1"
+loc="/opt/NAP"
 # Build file structure
 mkdir -p "${loc}/bin/"
 mv "${loc}/scripts/" "${loc}/bin/"
