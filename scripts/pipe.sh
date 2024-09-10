@@ -344,15 +344,16 @@ OTU_16s=$(wc -l < "${PROK}/${id}_16s_RAWxCON.out")
 echo "14,Normalising, bias correcting, and merging data" > "${progress_file}"
 echo "(14) Blasting 16S bin" >> "${log}"
 echo "$OTU_16s 16S and $OTU_18s 18S microbes identified" > "${progress_info}"
-# Bias correction
-python "${bias_correction}" "${PROK}/${id}_16s_RAWxCON.tsv" "${bias_factor_16s}" "${merge_b}/${id}_16s_unbias.tsv" "${log}"
-python "${bias_correction}" "${EUK}/${id}_18s_RAWxCON.tsv" "${bias_factor_18s}" "${merge_b}/${id}_18s_unbias.tsv" "${log}"
 # Count total reads and normalize
-python "${normalise}" "${merge_b}/${id}_16s_unbias.tsv" "${norm_factor}" "${merge_b}/${id}_16s_microbiome.tsv" "${log}"
-python "${normalise}" "${merge_b}/${id}_18s_unbias.tsv" "${norm_factor}" "${merge_b}/${id}_18s_microbiome.tsv" "${log}"
-# Merge
-python "${merge_16s_18s}" "${merge_b}/${id}_18s_microbiome.tsv" "${merge_b}/${id}_16s_microbiome.tsv" "${merge_b}/${id}_microbiome_full-tax.tsv" "${log}"
-#python "${decontaminate}" "${merge_o}/${id}_microbiome.tsv" "${blank_microbiome}" "${decontamination_factor}"
+total_abundance=$(echo 'scale=0; $OTU_18s + $OTU_16s | bc')
+python "${normalise}" "${PROK}/${id}_16s_RAWxCON.tsv" "${norm_factor}" "${merge_b}/${id}_16s_norm_bias.tsv" "${log}" "$total_abundance"
+python "${normalise}" "${PROK}/${id}_18s_RAWxCON.tsv" "${norm_factor}" "${merge_b}/${id}_18s_norm_bias.tsv" "${log}" "$total_abundance"
+# Bias correction
+python "${bias_correction}" "${merge_b}/${id}_16s_norm_bias.tsv" "${bias_factor_16s}" "${merge_b}/${id}_16s_unbias.tsv" "${log}"
+python "${bias_correction}" "${merge_b}/${id}_18s_norm_bias.tsv" "${bias_factor_18s}" "${merge_b}/${id}_18s_unbias.tsv" "${log}"
+# Merge, decontaminate, simplify taxa (genus species), and plot
+python "${merge_16s_18s}" "${merge_b}/${id}_18s_unbias.tsv" "${merge_b}/${id}_16s_unbias.tsv" "${merge_b}/${id}_microbiome_full-tax.tsv" "${log}"
+#python "${decontaminate}" "${merge_b}/${id}_microbiome_full-tax.tsv" "${blank_microbiome}" "${decontamination_factor}"
 python "${simplify_taxa}" "${merge_b}/${id}_microbiome_full-tax.tsv" "${merge_o}/${id}_Q${phred}_microbiome.tsv"
 python "${plot_taxa}" "${merge_o}/${id}_Q${phred}_microbiome.tsv" "${merge_o}/${id}_Q${phred}_microbiome.png"
 # Log completion message
