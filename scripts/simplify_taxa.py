@@ -6,20 +6,20 @@ import sys
 def clean_taxonomy(taxonomy):
     # Remove brackets
     taxonomy = re.sub(r'[\(\)\[\]\{\}]', '', taxonomy)
-    
-    # Split taxonomy into levels and extract genus and species
-    parts = taxonomy.strip().split(';')
-    genus_species = parts[-1].strip()
-    
-    # Handle "sp" cases: if second word is "sp", retain it, otherwise trim after genus and species
+    # Split taxonomy into levels and take only the part after the last semicolon
+    genus_species = taxonomy.strip().split(';')[-1].strip()  # Only take the last part (genus and species level)
+    # Split the genus_species part into individual words
     genus_species_split = genus_species.split()
-    if len(genus_species_split) > 1 and genus_species_split[1] == 'sp':
-        genus_species = ' '.join(genus_species_split[:2])  # Keep "Genus sp"
+    # Case 1: Handle case where the second word is 'sp'
+    if len(genus_species_split) >= 2 and genus_species_split[1] == 'sp':
+        # Keep genus and "sp", and any words after "sp"
+        genus_species = ' '.join(genus_species_split[:3]) if len(genus_species_split) > 2 else ' '.join(genus_species_split[:2])
+    # Case 2: Otherwise, keep only the first two words (Genus and Species)
     else:
-        genus_species = ' '.join(genus_species_split[:2])  # Only keep Genus and Species
-    
-    # Return cleaned taxonomy path with genus and species
-    return ';'.join(parts[:-1]) + ';' + genus_species
+        genus_species = ' '.join(genus_species_split[:2])
+    # Return only the cleaned genus and species
+    return genus_species
+
 
 # Load the TSV file
 def process_tsv(input_file, output_file):
