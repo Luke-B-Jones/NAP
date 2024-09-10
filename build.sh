@@ -42,6 +42,5 @@ wget -O SILVA_138.2_SSU_NR99.fasta.gz "https://www.arb-silva.de/fileadmin/silva_
 gzip -d SILVA_138.2_SSU_NR99.fasta.gz
 SILVA_prefix="SILVA_138.2_SSU_NR99"
 # Create databases in manual (0)
-bash "${loc}/bin/scripts/update-database.sh" "$SILVA_prefix" "0"
+bash /opt/NAP/bin/scripts/update-database.sh "$SILVA_prefix" "0"
 echo "# $pipeline_name $pipeline_version setup complete (4 of 4)"
-
