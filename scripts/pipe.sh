@@ -141,11 +141,12 @@ if [ "${input_count}" -lt 12000 ]; then
   echo "${er}ERROR${r}: phred score filtration resulted in <12,0000 reads, this is insufficient depth, please go to the config and changes phred scores to match your data"
 fi
 seqtk sample -s100 "${prep_f}/${id}_${phred}_Phred_total.fastq" "${max_depth}" > "${prep_f}/${id}_${phred}_Phred.fastq"
+filtered_count=$(grep -c '^@' "${prep_f}/${id}_${phred}_Phred.fastq")
 #
 # CHIMERA REMOVAL
 echo "2,Prepairing to identify Chimeras" > "${progress_file}"
-echo "${seq_count_raw} filtered reads; ${percentage_filt_retained}% O/T" > "${progress_info}"
-echo "(2) Searching for Chimeras: ${seq_count_raw} reads; ${percentage_filt_retained}%" >> "${log}"
+echo "${filtered_count} filtered reads; ${percentage_filt_retained}% O/T" > "${progress_info}"
+echo "(2) Searching for Chimeras: ${filtered_count} reads; ${percentage_filt_retained}%" >> "${log}"
 # Convert the filtered FASTQ file to FASTA
 vsearch --fastq_filter "${prep_f}/${id}_${phred}_Phred.fastq" --fastq_qmax 70 --fastaout "${prep_f}/${id}_filtered.fasta" >> "${log}" 2>&1 || { echo "ERROR: vsearch fastq_filter failed" >> "${log}"; exit 1; }
 # Check if the filtered FASTA file is created
