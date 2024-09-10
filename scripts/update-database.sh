@@ -60,8 +60,8 @@ cat "${database_dir}18s_${prefix}.fasta" "${database_dir}16s_${prefix}.fasta" > 
 update_config() {
     local var_name=$1
     local new_value=$2
-    if grep -q "^export ${var_name}=" "../../config.sh"; then
-        sed -i "s|^export ${var_name}=.*|export ${var_name}=\"${new_value}\"|" "../../config.sh"
+    if grep -q "^export ${var_name}=" "${w_d}/config.sh"; then
+        sed -i "s|^export ${var_name}=.*|export ${var_name}=\"${new_value}\"|" "${w_d}/config.sh"
     else
         echo "${er}ERROR:${in} failed to update config for ${var_name} ${r}"
     fi
