@@ -3,8 +3,8 @@
 export max_length=""
 export min_length=""
 # Blastn CON
-export ident_CON_16s="95"
-export ident_CON_18s="95"
+export ident_CON_16s="90"
+export ident_CON_18s="90"
 # Blastn RAW
 export ident_RAW_16s="80"
 export ident_RAW_18s="80"
@@ -20,3 +20,4 @@ export ref_min_length_16s=""
 export ref_min_length_18s=""
 export amplicon_16s_length=""
 export amplicon_18s_length=""
+export type=""
