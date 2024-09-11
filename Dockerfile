@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     sudo \
     bc \
+    vim \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 # Set GCC and G++ to version 9 as the default
