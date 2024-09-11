@@ -347,7 +347,7 @@ echo "$OTU_16s 16S and $OTU_18s 18S microbes identified" > "${progress_info}"
 # Count total reads and normalize
 total_abundance=$(echo "$OTU_18s + $OTU_16s" | bc)
 python "${normalise}" "${PROK}/${id}_16s_RAWxCON.tsv" "${norm_factor}" "${merge_b}/${id}_16s_norm_bias.tsv" "${log}" "$total_abundance"
-python "${normalise}" "${PROK}/${id}_18s_RAWxCON.tsv" "${norm_factor}" "${merge_b}/${id}_18s_norm_bias.tsv" "${log}" "$total_abundance"
+python "${normalise}" "${EUK}/${id}_18s_RAWxCON.tsv" "${norm_factor}" "${merge_b}/${id}_18s_norm_bias.tsv" "${log}" "$total_abundance"
 # Bias correction
 python "${bias_correction}" "${merge_b}/${id}_16s_norm_bias.tsv" "${bias_factor_16s}" "${merge_b}/${id}_16s_unbias.tsv" "${log}"
 python "${bias_correction}" "${merge_b}/${id}_18s_norm_bias.tsv" "${bias_factor_18s}" "${merge_b}/${id}_18s_unbias.tsv" "${log}"
