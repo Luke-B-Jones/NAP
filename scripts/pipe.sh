@@ -73,38 +73,38 @@ mkdir -p ./logs
 # Autoset Phred (aiming for 50-200k reads with highest phred possible)
 if [ "${input_count}" -gt 500000 ]; then
     phred="${phred_500k}"
-    varients_scaling_variable="2.05"
-    clust_bit_star="0.845"
-    clust_bit_end="0.81"
-    clust_sim="0.848"
+    varients_scaling_variable="2.4"
+    clust_bit_star="0.92"
+    clust_bit_end="0.78"
+    clust_sim="0.83"
 elif [ "${input_count}" -gt 300000 ]; then
     phred="${phred_300k}"
-    varients_scaling_variable="2.1"
-    clust_bit_star="0.845"
-    clust_bit_end="0.81"
-    clust_sim="0.847"
+    varients_scaling_variable="2.4"
+    clust_bit_star="0.92"
+    clust_bit_end="0.78"
+    clust_sim="0.83"
 elif [ "${input_count}" -gt 200000 ]; then
     phred="${phred_200k}"
-    varients_scaling_variable="2.2"
-    clust_bit_star="0.843"
-    clust_bit_end="0.81"
-    clust_sim="0.846"
+    varients_scaling_variable="2.4"
+    clust_bit_star="0.92"
+    clust_bit_end="0.78"
+    clust_sim="0.83"
 elif [ "${input_count}" -gt 100000 ]; then
     phred="${phred_100k}"
-    varients_scaling_variable="2.35"
-    clust_bit_star="0.84"
-    clust_bit_end="0.8"
-    clust_sim="0.844"
+    varients_scaling_variable="2.4"
+    clust_bit_star="0.92"
+    clust_bit_end="0.78"
+    clust_sim="0.83"
 elif [ "${input_count}" -gt 50000 ]; then
     phred="${phred_50k}"
-    varients_scaling_variable="2.45"
-    clust_bit_star="0.84"
-    clust_bit_end="0.8"
-    clust_sim="0.84"
+    varients_scaling_variable="2.4"
+    clust_bit_star="0.92"
+    clust_bit_end="0.78"
+    clust_sim="0.83"
 else
     phred="${phred_fail}"
-    varients_scaling_variable="2.55"
-    clust_bit_star="0.82"
+    varients_scaling_variable="2.4"
+    clust_bit_star="0.92"
     clust_bit_end="0.78"
     clust_sim="0.83"
 fi
@@ -250,7 +250,7 @@ echo "(8) Clustering and polishing 16S bin " >> "${log}"
 conda deactivate
 # Rattle
 max_16s_variance=$(echo "$amplicon_16s_length * $varients_scaling_variable" | bc)
-rattle cluster -i "${prep_b}/16s_CON.fastq" -o "${PROK}/" -t "${cores}" -k 11 -s "${clust_sim}" -v "${max_16s_variance}" -B "${clust_bit_star}" -b "${clust_bit_end}" -f 0.05 --lower-length "$min_length" --upper-length "$max_length" --raw >> "${log}" 2>&1 || {
+rattle cluster -i "${prep_b}/16s_CON.fastq" -o "${PROK}/" -t "${cores}" -k 11 -s "${clust_sim}" -v "${max_16s_variance}" -B "${clust_bit_star}" -b "${clust_bit_end}" -f 0.02 --lower-length "$min_length" --upper-length "$max_length" --raw >> "${log}" 2>&1 || {
   echo "ERROR: Rattle failed to cluster 16s data" >> "${log}";
   exit 1;
 }
@@ -266,7 +266,7 @@ rattle polish -i "${PROK}/consensi.fq" -o "${PROK}/" -t "${cores}" --summary >> 
 echo "9,Clustering and polishing 18S bin" > "${progress_file}" 
 echo "(9) Clustering and polishing 18S bin " >> "${log}"
 max_18s_variance=$(echo "$amplicon_18s_length * $varients_scaling_variable" | bc)
-rattle cluster -i "${prep_b}/18s_CON.fastq" -o "${EUK}/" -t "${cores}" -k 11 -s "${clust_sim}" -v "${max_18s_variance}" -B "${clust_bit_star}" -b "${clust_bit_end}" -f 0.05 --lower-length "$min_length" --upper-length "$max_length" --raw >> "${log}" 2>&1 || {
+rattle cluster -i "${prep_b}/18s_CON.fastq" -o "${EUK}/" -t "${cores}" -k 11 -s "${clust_sim}" -v "${max_18s_variance}" -B "${clust_bit_star}" -b "${clust_bit_end}" -f 0.02 --lower-length "$min_length" --upper-length "$max_length" --raw >> "${log}" 2>&1 || {
   echo "ERROR: Rattle failed to cluster 18s data" >> "${log}";
   exit 1;
 }
