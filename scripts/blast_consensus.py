@@ -23,8 +23,9 @@ def parse_blast_output(blast_output_file):
             bitscore = float(cols[11])
             stitle = cols[12]
 
-            genus = stitle.split()[0]  # Assuming the genus is the first word in the title
-            species = ' '.join(stitle.split()[:2])  # Assuming the species is the first two words
+            # Identify genus as the word after the last semicolon
+            genus = stitle.split(';')[-1].split()[0].strip()  # Last element, first word is the genus
+            species = ' '.join(stitle.split(';')[-1].split()[:2]).strip()  # First two words as species
 
             hit_data = {
                 'qseqid': qseqid,
