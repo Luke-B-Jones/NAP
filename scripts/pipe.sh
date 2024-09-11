@@ -74,37 +74,37 @@ mkdir -p ./logs
 if [ "${input_count}" -gt 500000 ]; then
     phred="${phred_500k}"
     varients_scaling_variable="2.4"
-    clust_bit_star="0.92"
+    clust_bit_star="0.85"
     clust_bit_end="0.78"
     clust_sim="0.83"
 elif [ "${input_count}" -gt 300000 ]; then
     phred="${phred_300k}"
     varients_scaling_variable="2.4"
-    clust_bit_star="0.92"
+    clust_bit_star="0.85"
     clust_bit_end="0.78"
     clust_sim="0.83"
 elif [ "${input_count}" -gt 200000 ]; then
     phred="${phred_200k}"
     varients_scaling_variable="2.4"
-    clust_bit_star="0.92"
+    clust_bit_star="0.85"
     clust_bit_end="0.78"
     clust_sim="0.83"
 elif [ "${input_count}" -gt 100000 ]; then
     phred="${phred_100k}"
     varients_scaling_variable="2.4"
-    clust_bit_star="0.92"
+    clust_bit_star="0.85"
     clust_bit_end="0.78"
     clust_sim="0.83"
 elif [ "${input_count}" -gt 50000 ]; then
     phred="${phred_50k}"
     varients_scaling_variable="2.4"
-    clust_bit_star="0.92"
+    clust_bit_star="0.85"
     clust_bit_end="0.78"
     clust_sim="0.83"
 else
     phred="${phred_fail}"
     varients_scaling_variable="2.4"
-    clust_bit_star="0.92"
+    clust_bit_star="0.85"
     clust_bit_end="0.78"
     clust_sim="0.83"
 fi
