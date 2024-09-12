@@ -35,10 +35,9 @@ def process_tsv(input_file, output_file):
         {'taxonomy': 'first', 'abundance': 'sum'}
     )
 
-    # Sort by abundance in descending order
+    # Sort the grouped data by abundance in descending order and save the result
     df_grouped = df_grouped.sort_values(by='abundance', ascending=False)
-
-    # Output the result as TSV
+   # Output the sorted result as TSV
     df_grouped[['taxonomy', 'abundance']].to_csv(output_file, sep='\t', index=False)
 
 # Main function to handle command line arguments
