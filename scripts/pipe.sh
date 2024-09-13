@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Load configuration files and save variables
 source config.sh
 # Set raw_data and id from command-line arguments
@@ -73,40 +72,16 @@ mkdir -p ./logs
 # Autoset Phred (aiming for 50-200k reads with highest phred possible)
 if [ "${input_count}" -gt 500000 ]; then
     phred="${phred_500k}"
-    varients_scaling_variable="2.4"
-    clust_bit_star="0.95"
-    clust_bit_end="0.80"
-    clust_sim="0.84"
 elif [ "${input_count}" -gt 300000 ]; then
     phred="${phred_300k}"
-    varients_scaling_variable="2.4"
-    clust_bit_star="0.95"
-    clust_bit_end="0.80"
-    clust_sim="0.84"
 elif [ "${input_count}" -gt 200000 ]; then
     phred="${phred_200k}"
-    varients_scaling_variable="2.4"
-    clust_bit_star="0.95"
-    clust_bit_end="0.80"
-    clust_sim="0.84"
 elif [ "${input_count}" -gt 100000 ]; then
     phred="${phred_100k}"
-    varients_scaling_variable="2.4"
-    clust_bit_star="0.95"
-    clust_bit_end="0.80"
-    clust_sim="0.83"
 elif [ "${input_count}" -gt 50000 ]; then
     phred="${phred_50k}"
-    varients_scaling_variable="2.4"
-    clust_bit_star="0.95"
-    clust_bit_end="0.80"
-    clust_sim="0.83"
 else
     phred="${phred_fail}"
-    varients_scaling_variable="2.4"
-    clust_bit_star="0.95"
-    clust_bit_end="0.79"
-    clust_sim="0.83"
 fi
 echo "Phred score auto set to: ${phred}" >> "${log}"
 #
@@ -242,92 +217,41 @@ echo "  ${per_16s}% 16s ${per_18s}% 18s
   total ${per_total}%
   $duplicated_count duplicated, ${per_dup}% " >> "${log}"
 # 
-# 16S
-# Rattle 16s
-echo "8,Clustering and polishing 16S bin" > "${progress_file}" 
-echo "(8) Clustering and polishing 16S bin " >> "${log}"
-# Return to gcc/g++ 9 env
-conda deactivate
-# Rattle
-max_16s_variance=$(echo "$amplicon_16s_length * $varients_scaling_variable" | bc)
-rattle cluster -i "${prep_b}/16s_CON.fastq" -o "${PROK}/" -t "${cores}" -k 11 -s "${clust_sim}" -v "${max_16s_variance}" -B "${clust_bit_star}" -b "${clust_bit_end}" -f 0.02 --lower-length "$min_length" --upper-length "$max_length" --raw >> "${log}" 2>&1 || {
-  echo "ERROR: Rattle failed to cluster 16s data" >> "${log}";
-  exit 1;
-}
-rattle correct -i "${prep_b}/16s_CON.fastq" -c "${PROK}/clusters.out" -o "${PROK}/" -t "${cores}" -g 0.3 -m 0.33 -s 400 -r 1 >> "${log}" 2>&1 || {
-  echo "ERROR: Rattle failed to correct 16s data" >> "${log}";
-  exit 1;
-}
-rattle polish -i "${PROK}/consensi.fq" -o "${PROK}/" -t "${cores}" --summary >> "${log}" 2>&1 || {
-  echo "ERROR: Rattle failed to polish 16s clusters" >> "${log}";
-  exit 1;
-}
-# Rattle 18s
-echo "9,Clustering and polishing 18S bin" > "${progress_file}" 
-echo "(9) Clustering and polishing 18S bin " >> "${log}"
-max_18s_variance=$(echo "$amplicon_18s_length * $varients_scaling_variable" | bc)
-rattle cluster -i "${prep_b}/18s_CON.fastq" -o "${EUK}/" -t "${cores}" -k 11 -s "${clust_sim}" -v "${max_18s_variance}" -B "${clust_bit_star}" -b "${clust_bit_end}" -f 0.02 --lower-length "$min_length" --upper-length "$max_length" --raw >> "${log}" 2>&1 || {
-  echo "ERROR: Rattle failed to cluster 18s data" >> "${log}";
-  exit 1;
-}
-rattle correct -i "${prep_b}/18s_CON.fastq" -c "${EUK}/clusters.out" -o "${EUK}/" -t "${cores}" -g 0.3 -m 0.33 -s 400 -r 1 >> "${log}" 2>&1 || {
-  echo "ERROR: Rattle failed to correct 18s data" >> "${log}";
-  exit 1;
-}
-rattle polish -i "${EUK}/consensi.fq" -o "${EUK}/" -t "${cores}" --summary >> "${log}" 2>&1 || {
-  echo "ERROR: Rattle failed to polish 18s clusters" >> "${log}";
-  exit 1;
-}
-# Return to conda env
-source "/opt/miniconda/etc/profile.d/conda.sh"
-conda activate nap_env
-# Calc and convert
-seqtk seq -A "${PROK}/transcriptome.fq" > "${PROK}/clusters.fasta"
-hits_16s=$(grep -c '^>' "${PROK}/clusters.fasta" )
-seqtk seq -A "${EUK}/transcriptome.fq" > "${EUK}/clusters.fasta"
-hits_18s=$(grep -c '^>' "${EUK}/clusters.fasta" )
 #
 #
-#
-# Taxanomiuc classification
-# Blastn 16S CON
-echo "$align_raw_16s in $hits_16s 16S hits" > "${progress_info}"
-echo "10,Blasting 16S bin" > "${progress_file}"
-echo "(10) Blasting 16S bin" >> "${log}"
-# Blastn CON
-blastn -query "${PROK}/clusters.fasta" -db "$blastn_16s_database" -out "${PROK}/${id}_16s_blastn.out" -reward 8 -penalty -10 -gapopen 6 -gapextend 10 -max_target_seqs 10 -perc_identity "${ident_CON_16s}" -evalue 1e-5 -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore stitle" -num_threads "${cores}" 2>> "${log}" || {
-  echo "ERROR: Blastn failed w/ error corrected 16S" >> "${log}";
-  exit 1;
-}
-python "$blast_consensus" "${PROK}/${id}_16s_blastn.out" "${PROK}/${id}_16s_blast_consensus.out" 2>> "${log}"
-#
-# Update
-echo "11,Blasting 18S bin" > "${progress_file}"
-echo "(11) Blasting 18S bin" >> "${log}"
+# Classification
+echo "9,Blasting 18S bin" > "${progress_file}"
+echo "(9) Blasting 18S bin" >> "${log}"
 echo "$align_raw_18s in $hits_18s 18S hits" > "${progress_info}"
 # Blastn 18S CON
-blastn -query "${EUK}/clusters.fasta" -db "$blastn_18s_database" -out "${EUK}/${id}_18s_blastn.out" -reward 8 -penalty -10 -gapopen 6 -gapextend 10 -max_target_seqs 10 -perc_identity "${ident_CON_18s}" -evalue 1e-5 -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore stitle" -num_threads "${cores}" 2>> "${log}" || {
+blastn -query "${prep_b}/18s_CON.fasta" -db "$blastn_18s_database" -out "${EUK}/${id}_18s_blastn.out" -reward 8 -penalty -10 -gapopen 6 -gapextend 10 -max_target_seqs 10 -perc_identity "${ident_CON_18s}" -evalue 1e-5 -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore stitle" -num_threads "${cores}" 2>> "${log}" || {
   echo "ERROR: Blastn failed w/ error corrected 18S" >> "${log}";
   exit 1;
 }
 python "$blast_consensus" "${EUK}/${id}_18s_blastn.out" "${EUK}/${id}_18s_blast_consensus.out" 2>> "${log}"
+#python "$refine_consensus" "${EUK}/${id}_18s_blast_consensus.out" "${EUK}/${id}_18s_RAWxCON.out" 2>> "${log}"
+python "$reduce_to_abundance" "${EUK}/${id}_18s_blast_consensus.out" "${EUK}/${id}_18s_RAWxCON.tsv" >> "${log}" 2>&1
 #
-# Blastn 16S RAW against CON
-echo "12,Calculating abundances" > "${progress_file}"
-echo "(12) Calculating abundances" >> "${log}"
+echo "10,Blasting 16S bin" > "${progress_file}"
+echo "(10) Blasting 16S bin" >> "${log}"
 echo "$align_raw_16s in $hits_16s 16S hits" > "${progress_info}"
-# Extract abundance
-python "$reduce_to_abundance" "${PROK}/${id}_16s_RAWxCON.out" "${PROK}/${id}_16s_RAWxCON.tsv" >> "${log}" 2>&1
-python "$reduce_to_abundance" "${EUK}/${id}_18s_RAWxCON.out" "${EUK}/${id}_18s_RAWxCON.tsv" >> "${log}" 2>&1
+# Blastn 18S CON
+blastn -query "${prep_b}/16s_CON.fasta" -db "$blastn_16s_database" -out "${PROK}/${id}_16s_blastn.out" -reward 8 -penalty -10 -gapopen 6 -gapextend 10 -max_target_seqs 10 -perc_identity "${ident_CON_16s}" -evalue 1e-5 -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore stitle" -num_threads "${cores}" 2>> "${log}" || {
+  echo "ERROR: Blastn failed w/ error corrected 16S" >> "${log}";
+  exit 1;
+}
+python "$blast_consensus" "${PROK}/${id}_16s_blastn.out" "${PROK}/${id}_16s_blast_consensus.out" 2>> "${log}"
+#python "$refine_consensus" "${PROK}/${id}_16s_blast_consensus.out" "${PROK}/${id}_16s_RAWxCON.out" 2>> "${log}"
+python "$reduce_to_abundance" "${PROK}/${id}_16s_blast_consensus.out" "${PROK}/${id}_16s_RAWxCON.tsv" >> "${log}" 2>&1
 # Count taxanomic units
-OTU_18s=$(awk -F'\t' 'NR>1 {sum+=$2} END {print sum}' "${EUK}/${id}_18s_RAWxCON.tsv")
+OTU_18s=$(awk -F'\t' 'NR>1 {sum+=$2} END {print sum}' "${PROK}/${id}_18s_RAWxCON.tsv")
 OTU_16s=$(awk -F'\t' 'NR>1 {sum+=$2} END {print sum}' "${PROK}/${id}_16s_RAWxCON.tsv")
 #
 #
 #
 # NORMALISE, UNBIAS, AND MERGE DATA
-echo "13,Normalising, bias correcting, and merging data" > "${progress_file}"
-echo "(13) Blasting 16S bin" >> "${log}"
+echo "11,Normalising, bias correcting, and merging data" > "${progress_file}"
+echo "(11) Blasting 16S bin" >> "${log}"
 echo "$OTU_16s 16S and $OTU_18s 18S microbes identified" > "${progress_info}"
 # Count total reads and normalize
 total_abundance=$(echo "$OTU_18s + $OTU_16s" | bc)
@@ -342,8 +266,8 @@ python "${merge_16s_18s}" "${merge_b}/${id}_18s_unbias.tsv" "${merge_b}/${id}_16
 python "${simplify_taxa}" "${merge_b}/${id}_microbiome_full-tax.tsv" "${merge_o}/${id}_Q${phred}_microbiome.tsv"
 python "${plot_taxa}" "${merge_o}/${id}_Q${phred}_microbiome.tsv" "${merge_o}/${id}_Q${phred}_microbiome.png"
 # Log completion message
-echo "14,Pipeline complete: see ${merge_o}/${id}_Q${phred}_microbiome.tsv" > "${progress_file}"
-echo "14,Pipeline complete: see ${merge_o}/" >> "${log}"
+echo "12,Pipeline complete: see ${merge_o}/${id}_Q${phred}_microbiome.tsv" > "${progress_file}"
+echo "12,Pipeline complete: see ${merge_o}/" >> "${log}"
 # Wait for the Python script to finish before removing the progress file and exiting
 wait "${PYTHON_PID}"
 rm -f "${progress_file}" "${progress_info}"
