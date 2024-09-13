@@ -1,32 +1,37 @@
 import sys
 import csv
+from collections import defaultdict
 
-def extract_taxonomy_and_abundance(clusters_fastq, blastn_out, output_tsv):
+def extract_taxonomy_and_calculate_abundance(blastn_out, output_tsv):
     # Define the start markers for taxonomy
     start_markers = ['Bacteria;', 'Archaea;', 'Eukaryota;']
-
-    # Parse BLAST output file and extract the taxonomy and cluster number
-    taxonomy_data = {}
+    
+    # Dictionary to store taxonomy and their abundance
+    taxonomy_abundance = defaultdict(int)
+    
+    # Parse BLAST output file and extract the taxonomy
     with open(blastn_out, 'r') as blast_file:
         for line in blast_file:
             columns = line.strip().split('\t')
-            cluster_num = columns[0].split('_')[1]  # Extract cluster_NUM from the first column
             taxonomy_full = columns[12]  # Full taxonomy line in column 13 (index 12)
-            # Check if any of the start markers are in the taxonomy line
+            
+            # Check if the taxonomy starts with any of the defined start markers
             if any(marker in taxonomy_full for marker in start_markers):
-                taxonomy_data[cluster_num] = taxonomy_full
+                # Split the taxonomy line into parts by ';'
+                taxonomy_parts = taxonomy_full.split(';')
+                
+                # Get the genus and species part after the last semicolon
+                genus_species = taxonomy_parts[-1].strip().split()  # Split the last part (genus and species)
+                
+                # Handle 'sp' cases, where we need to keep the last three words after the last ';'
+                if genus_species[0] == 'sp':
+                    final_taxonomy = ';'.join(taxonomy_parts[:-1]) + ';' + ' '.join(genus_species[-3:])
+                else:
+                    # Otherwise, take only the genus and first two words of the species, trim the rest
+                    final_taxonomy = ';'.join(taxonomy_parts[:-1]) + ';' + ' '.join(genus_species[:2])
 
-    # Parse clusters FASTQ file to extract total_reads number
-    abundance_data = {}
-    with open(clusters_fastq, 'r') as fastq_file:
-        for line in fastq_file:
-            if line.startswith('@'):
-                cluster_header = line.strip().split(' ')[0]
-                cluster_num = cluster_header.split('_')[1]
-                for part in line.strip().split(' '):
-                    if part.startswith('total_reads='):
-                        total_reads = part.split('=')[1]
-                        abundance_data[cluster_num] = total_reads
+                # Increment abundance for this taxonomy
+                taxonomy_abundance[final_taxonomy] += 1
 
     # Write the output TSV
     with open(output_tsv, 'w', newline='') as output_file:
@@ -34,16 +39,14 @@ def extract_taxonomy_and_abundance(clusters_fastq, blastn_out, output_tsv):
         # Write header
         tsv_writer.writerow(['Taxonomy', 'Abundance'])
 
-        # Write data
-        for cluster_num, taxonomy in taxonomy_data.items():
-            abundance = abundance_data.get(cluster_num, '0')  # Default to '0' if not found
+        # Write taxonomy and abundance
+        for taxonomy, abundance in taxonomy_abundance.items():
             tsv_writer.writerow([taxonomy, abundance])
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
-        print("Usage: python script.py <clusters.fastq> <blastn.out> <output.tsv>")
+    if len(sys.argv) != 3:
+        print("Usage: python script.py <blastn.out> <output.tsv>")
     else:
-        clusters_fastq = sys.argv[1]
-        blastn_out = sys.argv[2]
-        output_tsv = sys.argv[3]
-        extract_taxonomy_and_abundance(clusters_fastq, blastn_out, output_tsv)
+        blastn_out = sys.argv[1]
+        output_tsv = sys.argv[2]
+        extract_taxonomy_and_calculate_abundance(blastn_out, output_tsv)
