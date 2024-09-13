@@ -343,7 +343,7 @@ python "${simplify_taxa}" "${merge_b}/${id}_microbiome_full-tax.tsv" "${merge_o}
 python "${plot_taxa}" "${merge_o}/${id}_Q${phred}_microbiome.tsv" "${merge_o}/${id}_Q${phred}_microbiome.png"
 # Log completion message
 echo "14,Pipeline complete: see ${merge_o}/${id}_Q${phred}_microbiome.tsv" > "${progress_file}"
-echo "14,Pipeline complete: see ${merge_o}/${id}_Q${phred}_microbiome.tsv" >> "${log}"
+echo "14,Pipeline complete: see ${merge_o}/" >> "${log}"
 # Wait for the Python script to finish before removing the progress file and exiting
 wait "${PYTHON_PID}"
 rm -f "${progress_file}" "${progress_info}"
