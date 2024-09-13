@@ -254,7 +254,7 @@ rattle cluster -i "${prep_b}/16s_CON.fastq" -o "${PROK}/" -t "${cores}" -k 11 -s
   echo "ERROR: Rattle failed to cluster 16s data" >> "${log}";
   exit 1;
 }
-rattle correct -i "${prep_b}/16s_CON.fastq" -c "${PROK}/clusters.out" -o "${PROK}/" -t "${cores}" -g 0.3 -m 0.33 -r 1 >> "${log}" 2>&1 || {
+rattle correct -i "${prep_b}/16s_CON.fastq" -c "${PROK}/clusters.out" -o "${PROK}/" -t "${cores}" -g 0.3 -m 0.33 -s 400 -r 1 >> "${log}" 2>&1 || {
   echo "ERROR: Rattle failed to correct 16s data" >> "${log}";
   exit 1;
 }
@@ -270,7 +270,7 @@ rattle cluster -i "${prep_b}/18s_CON.fastq" -o "${EUK}/" -t "${cores}" -k 11 -s 
   echo "ERROR: Rattle failed to cluster 18s data" >> "${log}";
   exit 1;
 }
-rattle correct -i "${prep_b}/18s_CON.fastq" -c "${EUK}/clusters.out" -o "${EUK}/" -t "${cores}" -g 0.3 -m 0.33 -r 1 >> "${log}" 2>&1 || {
+rattle correct -i "${prep_b}/18s_CON.fastq" -c "${EUK}/clusters.out" -o "${EUK}/" -t "${cores}" -g 0.3 -m 0.33 -s 400 -r 1 >> "${log}" 2>&1 || {
   echo "ERROR: Rattle failed to correct 18s data" >> "${log}";
   exit 1;
 }
@@ -315,28 +315,18 @@ python "$blast_consensus" "${EUK}/${id}_18s_blastn.out" "${EUK}/${id}_18s_blast_
 echo "12,Blasting RAW data against 16S CON" > "${progress_file}"
 echo "(12) Blasting RAW data against 16S CON" >> "${log}"
 echo "$align_raw_16s in $hits_16s 16S hits" > "${progress_info}"
-python "$generate_con_database" "${PROK}/${id}_16s_blast_consensus.out" "${PROK}/clusters.fasta" "${PROK}/16s_CON_database.fasta" >> "${log}" 2>&1
-makeblastdb -in "${PROK}/16s_CON_database.fasta" -dbtype nucl -out "${PROK}/16S_CON/" -title "16S_CON" >> "${log}" 2>&1
-blastn -query "${prep_b}/16s_CON.fasta" -db "${PROK}/16S_CON" -out "${PROK}/${id}_16s_RAWxCON.out" -reward 8 -penalty -10 -gapopen 6 -gapextend 10 -max_target_seqs 1 -perc_identity "${ident_RAW_16s}" -evalue 1e-30 -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore stitle" -num_threads "${cores}" 2>> "${log}" || {
-  echo "ERROR: Blastn failed w/ raw 16S bin" >> "${log}";
-  exit 1;
-}
+
 python "$reduce_to_abundance" "${PROK}/${id}_16s_RAWxCON.out" "${PROK}/${id}_16s_RAWxCON.tsv" >> "${log}" 2>&1
 #
 # Blastn 18S RAW against CON
 echo "13,Blasting RAW data against 18S CON" > "${progress_file}"
 echo "(13) Blasting RAW data against 18S CON" >> "${log}"
 echo "$align_raw_18s in $hits_18s 18S hits" > "${progress_info}"
-python "$generate_con_database" "${EUK}/${id}_18s_blast_consensus.out" "${EUK}/clusters.fasta" "${EUK}/18s_CON_database.fasta" >> "${log}" 2>&1
-makeblastdb -in "${EUK}/18s_CON_database.fasta" -dbtype nucl -out "${EUK}/18S_CON/" -title "18S_CON" >> "${log}" 2>&1
-blastn -query "${prep_b}/18s_CON.fasta"  -db "${EUK}/18S_CON" -out "${EUK}/${id}_18s_RAWxCON.out" -reward 8 -penalty -10 -gapopen 6 -gapextend 10 -max_target_seqs 1 -perc_identity "${ident_RAW_18s}" -evalue 1e-30 -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore stitle" -num_threads "${cores}" 2>> "${log}" || {
-  echo "ERROR: Blastn failed w/ raw 18S bin" >> "${log}";
-  exit 1;
-}
+
 python "$reduce_to_abundance" "${EUK}/${id}_18s_RAWxCON.out" "${EUK}/${id}_18s_RAWxCON.tsv" >> "${log}" 2>&1
 # Count taxanomic units
-OTU_18s=$(wc -l < "${EUK}/${id}_18s_RAWxCON.out")
-OTU_16s=$(wc -l < "${PROK}/${id}_16s_RAWxCON.out")
+OTU_18s=################## FILL ME ####################
+OTU_16s=################## FILL ME ####################
 #
 #
 #
