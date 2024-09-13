@@ -24,7 +24,7 @@ if [ "$ex_type" = "0" ]; then
 echo "${in}Generating databases using filter: ${er}${filter}${r}, this should take between, please be patient"
 # Go (1- build)
 else
-echo "${in}This script is currently formatted to function with ${er}${default_database_name} ${default_database_version}${in}, using filter preset: ${er}${filter}${r}"
+echo "${in}This script is currently formatted to function with ${er}${default_database_name} ${default_database_version}${in}, using filter preset: ${er}${filter}${in} - ${er}$amplicon_pre_set ${r}"
 echo "${in}Use 'nap configurate' to modify this pre-set${r}"
 echo "${in}To use a new database, put the fasta in ${w_d}/bin/databases/ and run 'nap update-database <file_prefix>' ${r}
 "
