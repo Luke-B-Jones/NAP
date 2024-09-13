@@ -113,7 +113,7 @@ echo "Phred score auto set to: ${phred}" >> "${log}"
 #
 # FILTERING REA
 echo "1,Filtering and trimming (Q${phred}, $min_length-$max_length bases)" > "${progress_file}"
-echo "${input_count} reads; 100% O/T, Phred=${phred}" > "${progress_info}"
+echo "${input_count} reads; 100% O/T" > "${progress_info}"
 echo "(1) Filtering and trimming (Q${phred}, $min_length - $max_length bases): ${input_count} reads; 100%" >> "${log}"
 if [ ! -s "${raw_data}" ]; then
   echo "${er}ERROR:${in} Input file ${raw_data} is empty or does not exist ${r}"
