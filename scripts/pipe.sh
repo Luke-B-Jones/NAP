@@ -20,7 +20,7 @@ if ! conda activate nap_env > /dev/null 2>&1; then
   exit 1
 fi
 # Prepare terminal display
-total_tasks=15
+total_tasks=14
 progress_file="${current_dir}/${id}/progress.txt" # Define progress (in-terminal)
 progress_info="${current_dir}/${id}/info.txt" # Define stats (in-terminal)
 # Update message
