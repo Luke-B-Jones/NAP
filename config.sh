@@ -5,7 +5,7 @@ export hardware_use="heavy"         # 'super-light' uses 20%, 'light' uses 45%, 
 export amplicon_pre_set="515y-926r" # premade configs to change amplicon handeling 
 # Defualt QC info (pipe)
 export norm_factor="100000" # Normalisation factor
-export max_depth="230000"   # Recommend 'true max' + 20%
+export max_depth="350000"   # Recommend 'true max' + 35%
 # Phred scaling
 export phred_500k="30" # Phred if input is >0.5 million reads
 export phred_300k="28" # Phred if input is >0.3 million reads
