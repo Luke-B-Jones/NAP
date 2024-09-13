@@ -288,6 +288,7 @@ seqtk seq -A "${EUK}/transcriptome.fq" > "${EUK}/clusters.fasta"
 hits_18s=$(grep -c '^>' "${EUK}/clusters.fasta" )
 #
 #
+#
 # Taxanomiuc classification
 # Blastn 16S CON
 echo "$align_raw_16s in $hits_16s 16S hits" > "${progress_info}"
@@ -312,27 +313,21 @@ blastn -query "${EUK}/clusters.fasta" -db "$blastn_18s_database" -out "${EUK}/${
 python "$blast_consensus" "${EUK}/${id}_18s_blastn.out" "${EUK}/${id}_18s_blast_consensus.out" 2>> "${log}"
 #
 # Blastn 16S RAW against CON
-echo "12,Blasting RAW data against 16S CON" > "${progress_file}"
-echo "(12) Blasting RAW data against 16S CON" >> "${log}"
+echo "12,Calculating abundances" > "${progress_file}"
+echo "(12) Calculating abundances" >> "${log}"
 echo "$align_raw_16s in $hits_16s 16S hits" > "${progress_info}"
-
+# Extract abundance
 python "$reduce_to_abundance" "${PROK}/${id}_16s_RAWxCON.out" "${PROK}/${id}_16s_RAWxCON.tsv" >> "${log}" 2>&1
-#
-# Blastn 18S RAW against CON
-echo "13,Blasting RAW data against 18S CON" > "${progress_file}"
-echo "(13) Blasting RAW data against 18S CON" >> "${log}"
-echo "$align_raw_18s in $hits_18s 18S hits" > "${progress_info}"
-
 python "$reduce_to_abundance" "${EUK}/${id}_18s_RAWxCON.out" "${EUK}/${id}_18s_RAWxCON.tsv" >> "${log}" 2>&1
 # Count taxanomic units
-OTU_18s=################## FILL ME ####################
-OTU_16s=################## FILL ME ####################
+OTU_18s=$(awk -F'\t' 'NR>1 {sum+=$2} END {print sum}' "${EUK}/${id}_18s_RAWxCON.tsv")
+OTU_16s=$(awk -F'\t' 'NR>1 {sum+=$2} END {print sum}' "${PROK}/${id}_16s_RAWxCON.tsv")
 #
 #
 #
 # NORMALISE, UNBIAS, AND MERGE DATA
-echo "14,Normalising, bias correcting, and merging data" > "${progress_file}"
-echo "(14) Blasting 16S bin" >> "${log}"
+echo "13,Normalising, bias correcting, and merging data" > "${progress_file}"
+echo "(13) Blasting 16S bin" >> "${log}"
 echo "$OTU_16s 16S and $OTU_18s 18S microbes identified" > "${progress_info}"
 # Count total reads and normalize
 total_abundance=$(echo "$OTU_18s + $OTU_16s" | bc)
@@ -347,7 +342,8 @@ python "${merge_16s_18s}" "${merge_b}/${id}_18s_unbias.tsv" "${merge_b}/${id}_16
 python "${simplify_taxa}" "${merge_b}/${id}_microbiome_full-tax.tsv" "${merge_o}/${id}_Q${phred}_microbiome.tsv"
 python "${plot_taxa}" "${merge_o}/${id}_Q${phred}_microbiome.tsv" "${merge_o}/${id}_Q${phred}_microbiome.png"
 # Log completion message
-echo "15,Pipeline complete: see ${merge_o}/${id}_Q${phred}_microbiome.tsv" > "${progress_file}"
+echo "14,Pipeline complete: see ${merge_o}/${id}_Q${phred}_microbiome.tsv" > "${progress_file}"
+echo "14,Pipeline complete: see ${merge_o}/${id}_Q${phred}_microbiome.tsv" >> "${log}"
 # Wait for the Python script to finish before removing the progress file and exiting
 wait "${PYTHON_PID}"
 rm -f "${progress_file}" "${progress_info}"
