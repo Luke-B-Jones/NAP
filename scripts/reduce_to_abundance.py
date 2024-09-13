@@ -1,46 +1,49 @@
 import sys
 import csv
-from collections import defaultdict
 
-def extract_taxonomic_path(stitle):
-    """
-    Extracts the taxonomic path starting from 'Bacteria;', 'Archaea;', or 'Eukaryota;'
-    within the stitle field. Returns the path or "Unknown" if none is found.
-    """
+def extract_taxonomy_and_abundance(clusters_fastq, blastn_out, output_tsv):
+    # Define the start markers for taxonomy
     start_markers = ['Bacteria;', 'Archaea;', 'Eukaryota;']
-    for marker in start_markers:
-        marker_pos = stitle.find(marker)
-        if marker_pos != -1:
-            return stitle[marker_pos:].strip()
-    return "Unknown"
 
-def process_blast_out(input_file, output_file):
-    """
-    Processes a BLASTN .out file to count the occurrences of each unique taxonomic path.
-    Writes the counts to an output file with columns for taxonomic path and abundance,
-    ensuring headers are in lowercase.
-    """
-    taxonomy_counts = defaultdict(int)
+    # Parse BLAST output file and extract the taxonomy and cluster number
+    taxonomy_data = {}
+    with open(blastn_out, 'r') as blast_file:
+        for line in blast_file:
+            columns = line.strip().split('\t')
+            cluster_num = columns[0].split('_')[1]  # Extract cluster_NUM from the first column
+            taxonomy_full = columns[12]  # Full taxonomy line in column 13 (index 12)
+            # Check if any of the start markers are in the taxonomy line
+            if any(marker in taxonomy_full for marker in start_markers):
+                taxonomy_data[cluster_num] = taxonomy_full
 
-    with open(input_file, 'r') as infile:
-        reader = csv.reader(infile, delimiter='\t')
-        for row in reader:
-            if len(row) < 13:
-                continue  # Skip rows that do not have enough columns
-            stitle = row[12]  # stitle is expected to be in the 13th column (0-based index 12)
-            taxonomic_path = extract_taxonomic_path(stitle)
-            taxonomy_counts[taxonomic_path] += 1
+    # Parse clusters FASTQ file to extract total_reads number
+    abundance_data = {}
+    with open(clusters_fastq, 'r') as fastq_file:
+        for line in fastq_file:
+            if line.startswith('@'):
+                cluster_header = line.strip().split(' ')[0]
+                cluster_num = cluster_header.split('_')[1]
+                for part in line.strip().split(' '):
+                    if part.startswith('total_reads='):
+                        total_reads = part.split('=')[1]
+                        abundance_data[cluster_num] = total_reads
 
-    with open(output_file, 'w', newline='') as outfile:
-        writer = csv.writer(outfile, delimiter='\t')
-        writer.writerow(['taxonomy', 'abundance'])  # Headers in lowercase
-        for path, count in sorted(taxonomy_counts.items(), key=lambda item: item[1], reverse=True):
-            writer.writerow([path, count])
+    # Write the output TSV
+    with open(output_tsv, 'w', newline='') as output_file:
+        tsv_writer = csv.writer(output_file, delimiter='\t')
+        # Write header
+        tsv_writer.writerow(['Taxonomy', 'Abundance'])
 
-if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        sys.stderr.write("Usage: python script.py <input_file> <output_file>\n")
-        sys.exit(1)
+        # Write data
+        for cluster_num, taxonomy in taxonomy_data.items():
+            abundance = abundance_data.get(cluster_num, '0')  # Default to '0' if not found
+            tsv_writer.writerow([taxonomy, abundance])
 
-    input_file, output_file = sys.argv[1], sys.argv[2]
-    process_blast_out(input_file, output_file)
+if __name__ == '__main__':
+    if len(sys.argv) != 4:
+        print("Usage: python script.py <clusters.fastq> <blastn.out> <output.tsv>")
+    else:
+        clusters_fastq = sys.argv[1]
+        blastn_out = sys.argv[2]
+        output_tsv = sys.argv[3]
+        extract_taxonomy_and_abundance(clusters_fastq, blastn_out, output_tsv)
