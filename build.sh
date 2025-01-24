@@ -6,7 +6,7 @@ if [ ! -f config.sh ]; then
     exit 1
 fi
 # Capture NAP directory and version
-loc="/opt/NAP"
+loc=$(pwd)
 # Build file structure
 mkdir -p "${loc}/bin/"
 mv "${loc}/scripts/" "${loc}/bin/"
@@ -14,6 +14,7 @@ mv "${loc}/subconfigs/" "${loc}/bin/"
 mkdir -p "${loc}/bin/databases"
 mkdir -p "${loc}/bin/logs"
 ln -s "${loc}/bin/scripts/nap.sh" "${loc}/nap"
+echo "alias nap='bash "${loc}/bin/scripts/nap.sh"'" >> ~/.bashrc
 #
 echo "# Populating the config (2 of 4)"
 # Update config via variable terminology
