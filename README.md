@@ -18,13 +18,13 @@ If nap update-database fails, check your ~/.bashrc has been correctly updated to
 ## **How to use:**
 `````
 # If you want to setup contamination (below assumes ./raw_data/*13*.fasta corisponds to B1 - blank 1)
-nap pipe 13 B1 14 B2 15 B3;
+nap pipe 13 B1 14 B2 15 B3; \
 nap decon ./B1/B1*microbiome.tsv ./B2/B2*microbiome.tsv ./B3/B3*microbiome.tsv
 `````
 Once decontamination is turned on, proceed to data analysis
 `````
 # Again, assumes ./raw_data/*13*.fasta corisponds to S1 - sample 1
-nap pipe 3 S1 2 S2 1 S3;
+nap pipe 3 S1 2 S2 1 S3; \
 nap decon ./B1/B1*microbiome.tsv ./B2/B2*microbiome.tsv ./B3/B3*microbiome.tsv
 `````
 ## **Interpritation:**
