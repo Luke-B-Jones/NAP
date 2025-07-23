@@ -10,8 +10,9 @@ function display_help() {
     echo "${in} Usage:${r} nap <tool> [options]...${r}
     Tools/Options:${r}
         pipe  ${r}-${in} process 16s and 18s mixed amplicon samples ${r}
+        decon  ${r}-${in} setup decontamination protocol (in pipe) ${r}
         update-database  ${r}-${in} update alighment database ${r} 
-        configure ${r}-${in} Modify internal settings ${r} 
+        config ${r}-${in} Modify internal settings ${r} 
         import ${r}-${in} Setup a new primer-set/amplicon-type for use ${r}
         --help  |  -h  ${r}- ${in} Print help info ${r}
         --version | -v  ${r}-${in} Print pipeline version ${r}"
@@ -34,25 +35,50 @@ if [[ "$1" == "pipe" ]]; then
         exit 0
     fi
 fi
+# DECON-taminate
+if [[ "$1" == "decon" ]]; then
+    if [[ "$2" == "-h" || "$2" == "--help" ]]; then
+        echo "${er} Usage:${in} nap decon <path/to/blank_pipe_output_1> <path/to/blank_pipe_output_2>..... ${r}(${in} turn ON decontamination) ${r}"
+        echo "${er} Usage:${in} nap decon off ${r}(${in} turn OFF decontamination) ${r}"
+        exit 0
+    fi
+fi
 # Update database
 if [[ "$1" == "update-database" ]]; then
     if [[ "$2" == "-h" || "$2" == "--help" ]]; then
         echo "${er} Usage:${in} nap update-database <file_prefix> ${r}
-        (1)${in} Be in the ./bin/database/ folder along with your new database.fasta ${r}"
+        (1)${in} Be in the ./bin/databases/ folder along with your new database.fasta ${r}"
         exit 0
     fi
 fi
-# Reconfigure
-if [[ "$1" == "configure" ]]; then
+# config
+if [[ "$1" == "config" ]]; then
     if [[ "$2" == "-h" || "$2" == "--help" ]]; then
-        cat "$config_location"
-        echo "${er} Usage:${in} nap configure <variable_name>=<new_content>... as many varibales as you like
-        e.g., nap configure hardware_use=heavy ${r} 
-        use 'nap configure -c' to show current config"
-        
+        sed -n '3,31p' "$config_location" | while IFS= read -r line; do
+            if [[ $line == \#* ]]; then
+                # Print lines starting with # in bold green
+                echo -e "\033[1;32m$line\033[0m"
+            else
+                # Remove 'export', and split the line around '=' to color before and after
+                line_no_export="${line//export/}"
+                if [[ $line_no_export == *"="* ]]; then
+                    # Split at '=' and print part before in grey, and after normally
+                    before_equals="${line_no_export%%=*}"
+                    after_equals="${line_no_export#*=}"
+                    echo -e "\e[37m$before_equals\033[0m=$after_equals"
+                else
+                    # Print line normally if no '=' is found
+                    echo "$line_no_export"
+                fi
+            fi
+        done
+        echo "${er} Usage:${r} nap config <variable_name>=<new_content>...${in} as many variables as you like
+        e.g., ${r}nap config hardware_use=heavy${in}
+        use '${r}nap config -h${in}' to show current config ${r} "
         exit 0
     fi
 fi
+
 # Import
 if [[ "$1" == "import" ]]; then
     if [[ "$2" == "-h" || "$2" == "--help" ]]; then
@@ -61,6 +87,7 @@ if [[ "$1" == "import" ]]; then
         exit 0
     fi
 fi
+
 # Parse and initate scripts
 TOOL_NAME=$1
 shift
@@ -85,7 +112,7 @@ if [ "$TOOL_NAME" = "pipe" ]; then
     while [ $# -ge 2 ]; do
         barcode="$1"
         sample_id="$2"
-        sample_file=$(find ${cd}/raw_data -name "*barcode${barcode}.fastq" -type f -print -quit)
+        sample_file=$(find ${cd}/raw_data -name "*${barcode}.fastq" -type f -print -quit)
 
         if [ -n "$sample_file" ]; then
             # Pass the log file path as the third argument to pipe.sh
@@ -115,7 +142,88 @@ if [ "$TOOL_NAME" = "pipe" ]; then
     echo -e "${in}Log file created: ${log_file} ${r}"
 fi
 
-if [ "$TOOL_NAME" = "configure" ]; then
+
+
+if [ "$TOOL_NAME" = "decon" ]; then
+    if [ "$1" = "off" ]; then
+        # Turn off decontamination by setting blank_active to 0
+        nap config "blank_active"="0"
+        echo "${su}Decontamination has been turned off for 'pipe' ${r}"
+    else
+        # Create blank TSV and ensure config is updated
+        blank_tsv_location=$(python "$setup_decontamination" "${@:1}")
+        sync
+        nap config "blank_loc"="$blank_tsv_location"
+
+        
+        # Initialize an array to store read counts
+        read_counts=()
+
+        # Loop through each TSV file path provided in ${@:1}
+        for tsv_file in "${@:1}"; do
+            # Identify the log directory relative to the TSV path
+            log_dir=$(dirname "$tsv_file")/logs
+
+            # Get the latest log file in the log directory
+            latest_log=$(ls -t "$log_dir" 2>/dev/null | head -n 1)
+            latest_log_path="$log_dir/$latest_log"
+
+            # Check if the latest log file exists and extract sample_read_count
+            if [[ -f "$latest_log_path" ]]; then
+                # Extract sample_read_count from the latest log file
+                sample_read_count=$(grep -oP 'sample_read_count=\K[0-9.]+' "$latest_log_path")
+                
+                # Ensure the extracted value is numeric and add it to the read_counts array
+                if [[ -n "$sample_read_count" && "$sample_read_count" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+                    read_counts+=("$sample_read_count")
+                    echo "Found sample_read_count=$sample_read_count in $latest_log"  # Debugging output
+                else
+                    echo "Warning: No valid sample_read_count found in $latest_log" >&2
+                fi
+            else
+                echo "Warning: No log file found in $log_dir" >&2
+            fi
+        done
+
+        # Calculate the median read count if values are found
+        if [ ${#read_counts[@]} -gt 0 ]; then
+            # Sort the read_counts array numerically
+            sorted_counts=($(printf '%s\n' "${read_counts[@]}" | sort -n))
+            mid_index=$(( ${#sorted_counts[@]} / 2 ))
+
+            # Calculate the median based on the number of entries
+            if (( ${#sorted_counts[@]} % 2 == 0 )); then
+                # Even number of entries: average the two middle values
+                median=$(echo "(${sorted_counts[$mid_index-1]} + ${sorted_counts[$mid_index]}) / 2" | bc -l)
+            else
+                # Odd number of entries: take the middle value
+                median=${sorted_counts[$mid_index]}
+            fi
+        else
+            median=0
+            echo "Warning: No valid sample_read_count values found across files." >&2
+        fi
+
+        # Update config with the calculated median read count
+        nap config "blank_read_count"="$median"
+        source "$config_location"
+        
+        # Verify configuration update for blank location
+        if [ "$blank_tsv_location" = "$blank_loc" ]; then
+            echo "${su}Decontamination has now correctly been set up and is enabled for 'pipe' ${r}"
+            nap config "blank_active"="1"
+        else
+            echo "${er}ERROR:${in} The decontamination TSV doesn't match the config location ${r}"
+            echo "${in}Python returned: ${r} $blank_tsv_location"
+            echo "${in}Config specifies: ${r} $blank_average"
+        fi
+    fi
+fi
+
+
+
+
+if [ "$TOOL_NAME" = "config" ]; then
     # Function to update the config
     update_config() {
         local var_name=$1
@@ -125,7 +233,7 @@ if [ "$TOOL_NAME" = "configure" ]; then
         if grep -q "^export ${var_name}=" "$config_location"; then
             # Update the variable's value correctly within double quotes
             sed -i "s|^export ${var_name}=\".*\"|export ${var_name}=\"${new_value}\"|" "$config_location"
-            echo "Updated ${var_name} to ${new_value}"
+            echo "${su}Updated ${var_name} to ${new_value} ${r}"
         else
             # Variable not found, print an error
             echo "${er}ERROR:${in} Variable ${var_name} not found in config. Check spelling ${r}"
@@ -145,9 +253,6 @@ if [ "$TOOL_NAME" = "configure" ]; then
         
         shift  # Move to the next argument
     done
-
-    cat "$config_location"
-    echo "${su}Reconfiguration complete: ${r}"
 fi
 
 
@@ -235,7 +340,6 @@ if [ "$TOOL_NAME" = "import" ]; then
     update_amp_config "amplicon_18s_length" "$amplicon_18s_length" "$output_file"
     update_amp_config "type" "$type" "$output_file"
 
-    cat "$output_file"
     # Ask the user to check the file and press Enter to proceed
     read -p "${su}Please review, press Enter to continue.${r}"
 
@@ -247,7 +351,7 @@ if [ "$TOOL_NAME" = "import" ]; then
         sed -i "s|^export amplicon_pre_set=\".*\"|export amplicon_pre_set=\"AMP_${primer_set}\"|" "$config_file"
         echo "${su}Default configuration updated to: AMP_${primer_set} ${r}"
     else
-        echo "${su}Default remains $amplicon_pre_set, use nap configure when you want to use 'AMP_${primer_set}'. ${r}"
+        echo "${su}Default remains $amplicon_pre_set, use nap config when you want to use 'AMP_${primer_set}'. ${r}"
     fi
 
     exit 0
