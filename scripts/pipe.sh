@@ -292,8 +292,8 @@ fi
 # Remove low abundance (likely missclassifications) and plot
 cutoff=$(printf "%.0f" "$(echo "$norm_factor * $norm_filter" | bc -l)")
 awk -v c="$cutoff" -F'\t' '$2 >= c' "${merge_o}/${id}_Q${phred}_microbiome_all.tsv" > "./${id}_Q${phred}_SPECIES-LEVEL.tsv"
-python "${plot_taxa}" "./${id}_Q${phred}_SPECIES-LEVEL.tsv" "./${id}_Q${phred}_microbiome.png"
 python "${genus_roleup}" --full "${merge_o}/${id}_microbiome_full-tax.tsv" --in "./${id}_Q${phred}_SPECIES-LEVEL.tsv" -o "./${id}_Q${phred}_GENUS-LEVEL.tsv"
+python "${plot_taxa}" "./${id}_Q${phred}_SPECIES-LEVEL.tsv" "./${id}_Q${phred}_GENUS-LEVEL.tsv" "./${id}_Q${phred}_microbiome.png"
 # Log completion message
 echo "9,Pipeline complete" > "${progress_file}"
 echo " " > "${progress_info}"
