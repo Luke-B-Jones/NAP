@@ -16,6 +16,7 @@ echo "read_id\tfull_taxonomic_path\treduced_taxonomic_path\tscore\tretain" > "${
 > "${out_dir}18s_reduced_${prefix}.fasta"
 > "${out_dir}18s_${prefix}.fasta"
 echo "${su}${B}(1) Filtering reads into 16S and 18S bins${r}"
+
 # 16S filter for Bacteria/Archaea, excluding "unknown" and "metagenome"
 awk -v out_dir="${out_dir}" -v prefix="${prefix}" '
 /^>/ {
@@ -34,7 +35,7 @@ awk -v out_dir="${out_dir}" -v prefix="${prefix}" '
 }
 ' "${input}"
 
-# 18S filter for Eukaryota, excluding animals and plants
+# 18S filter for Eukaryota, excluding animals, plants, and euk which are unlikely microbiome members
 awk -v out_dir="${out_dir}" -v prefix="${prefix}" '
 /^>/ {
     printit = 0
