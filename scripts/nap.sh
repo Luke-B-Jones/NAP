@@ -275,14 +275,12 @@ if [ "$TOOL_NAME" = "import" ]; then
     read max_length
     echo "${or}Enter minimum length filter (e.g., 150; recommend min length -10%): ${r}"
     read min_length
-    echo "${or}Enter Blastn CON 16s identity threshold (default 95): ${r}"
-    read ident_CON_16s
-    echo "${or}Enter Blastn CON 18s identity threshold (default 95): ${r}"
-    read ident_CON_18s
-    echo "${or}Enter Blastn RAW 16s identity threshold (default 80): ${r}"
-    read ident_RAW_16s
-    echo "${or}Enter Blastn RAW 18s identity threshold (default 80): ${r}"
-    read ident_RAW_18s
+    echo "${or}Enter Blastn HAC coverage threshold (default 70): ${r}"
+    read cov_HAC
+    echo "${or}Enter Blastn HAC identity threshold (default 95): ${r}"
+    read ident_HAC
+    echo "${or}Enter Blastn RAW identity threshold (default 80): ${r}"
+    read ident_RAW
     echo "${or}Enter (relative) bias correction factor for 16s (e.g., 1): ${r}"
     read bias_factor_16s
     echo "${or}Enter (relative) bias correction factor for 18s (e.g., 2): ${r}"
@@ -324,10 +322,9 @@ if [ "$TOOL_NAME" = "import" ]; then
     # Update the variables in the new file
     update_amp_config "max_length" "$max_length" "$output_file"
     update_amp_config "min_length" "$min_length" "$output_file"
-    update_amp_config "ident_CON_16s" "$ident_CON_16s" "$output_file"
-    update_amp_config "ident_CON_18s" "$ident_CON_18s" "$output_file"
-    update_amp_config "ident_RAW_16s" "$ident_RAW_16s" "$output_file"
-    update_amp_config "ident_RAW_18s" "$ident_RAW_18s" "$output_file"
+    update_amp_config "cov_HAC" "$cov_HAC" "$output_file"
+    update_amp_config "ident_HAC" "$ident_CON" "$output_file"
+    update_amp_config "ident_RAW" "$ident_RAW" "$output_file"
     update_amp_config "bias_factor_16s" "$bias_factor_16s" "$output_file"
     update_amp_config "bias_factor_18s" "$bias_factor_18s" "$output_file"
     update_amp_config "for_seq" "$for_seq" "$output_file"
