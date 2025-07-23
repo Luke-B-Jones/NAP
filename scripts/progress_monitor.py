@@ -26,8 +26,7 @@ def display_progress_with_timer(progress_file, progress_info, total_tasks, id_va
     task_start_times = {}
     task_end_times = {}
     task_descriptions = {}
-
-    first_iteration = True
+    task_info = {}  # ← new: store the per-task info string
 
     while True:
         try:
@@ -37,7 +36,6 @@ def display_progress_with_timer(progress_file, progress_info, total_tasks, id_va
             print(f"Error: The file {progress_file} was not found.")
             sys.exit(1)
 
-        # Update the highlighted_info content inside the loop
         try:
             with open(progress_info, "r") as f:
                 progress_info_content = f.read().strip()
@@ -61,13 +59,15 @@ def display_progress_with_timer(progress_file, progress_info, total_tasks, id_va
             if task_number not in task_start_times:
                 task_start_times[task_number] = datetime.now()
             task_end_times[task_number] = datetime.now()
+            # record the info string that was current when this task ran
+            task_info[task_number] = progress_info_content
+
             last_task_number = task_number
 
-            completed_bar = bold_start + green_color + '#' * last_task_number + reset_color
-            remaining_bar = bold_start + red_color + '-' * (total_tasks - last_task_number) + reset_color
+            completed_bar = bold_start + green_color + "#" * last_task_number + reset_color
+            remaining_bar = bold_start + red_color + "-" * (total_tasks - last_task_number) + reset_color
             time_elapsed = format_timedelta(datetime.now() - task_start_times[last_task_number])
 
-            # Construct the output line with the updated progress info in gray
             output_line = (
                 f"{completed_bar}{remaining_bar} "
                 f"{last_task_number}/{total_tasks} - {bold_start}{id_value}{bold_end}: "
@@ -75,7 +75,6 @@ def display_progress_with_timer(progress_file, progress_info, total_tasks, id_va
             )
 
         if output_line:
-            # Clear the entire line before printing new content
             sys.stdout.write(f"\r{clear_line}\r{output_line}")
             sys.stdout.flush()
 
@@ -90,15 +89,26 @@ def display_progress_with_timer(progress_file, progress_info, total_tasks, id_va
         log_file.write("Pipeline successfully completed:\n")
         for task_number in range(1, total_tasks + 1):
             description = task_descriptions.get(task_number, "Task description not found")
-            task_duration = format_timedelta(task_end_times[task_number] - task_start_times[task_number]) if task_number in task_start_times else "[00:00:00]"
-            output = f"{description} {highlighted_info} {task_duration}"
-            print(output)
-            log_file.write(f"{description} - {progress_info_content} - {task_duration}\n")
+            info_for_task = task_info.get(task_number, "")
+            highlighted = gray_color + highlight_numbers(info_for_task) + reset_color
+            duration = format_timedelta(
+                task_end_times.get(task_number, task_start_times.get(task_number, timedelta()))
+                - task_start_times.get(task_number, timedelta())
+            )
+            print(f"{description} {highlighted} {duration}")
+            log_file.write(f"{description} - {info_for_task} - {duration}\n")
 
 if __name__ == "__main__":
     if len(sys.argv) != 6:
         print("Usage: python3 progress_monitor.py <path_to_progress_file> <progress_info> <total_tasks> <id> <log_file_path>")
         sys.exit(1)
-    
+
     progress_file_path, progress_info, total_tasks, id_value, log_file_path = sys.argv[1:6]
-    display_progress_with_timer(progress_file_path, progress_info, int(total_tasks), id_value, log_file_path)
+    display_progress_with_timer(
+        progress_file_path,
+        progress_info,
+        int(total_tasks),
+        id_value,
+        log_file_path
+    )
+
