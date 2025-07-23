@@ -60,7 +60,6 @@ export mute="${w_d}/bin/scripts/mute_noise.py"                               # S
 export setup_decontamination="${w_d}/bin/scripts/decontamination_setup.py"   # Prepaire a decontamination.tsv from blanks.tsv
 export decontaminate="${w_d}/bin/scripts/decontamination_JOSEPHINE.py"       # Decontamination script
 export genus_roleup="${w_d}/bin/scripts/genus_rollup.py"                     # Species to genus level conversion
-export isON_extract="${w_d}/bin/scripts/isON_extract_rep.py"
 # Text editing ASCII
 export in=$'\e[37m'              # Light gray colour INPUT
 export er=$'\033[0;31m'          # Red colour ERROR
