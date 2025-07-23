@@ -1,68 +1,66 @@
+#!/usr/bin/env python3
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')  # no GUI, no interactive output
 import matplotlib.pyplot as plt
 import argparse
-import os
+import sys
 
-# Set up argument parser
-parser = argparse.ArgumentParser(description="Plot stacked barplots for genus and species level abundance.")
-parser.add_argument('input_file', type=str, help='Path to input TSV file')
-parser.add_argument('output_file', type=str, help='Path to save the output plot (PNG or JPEG format)')
+def load_and_normalise(path):
+    """
+    Load a TSV with two columns: one of ['taxonomy','genus','species'] and 'abundance'.
+    Normalize abundance to percent and return a DataFrame sorted by abundance_pct desc.
+    """
+    df = pd.read_csv(path, sep='\t')
+    tax_cols = [c for c in df.columns if c in ('taxonomy','genus','species')]
+    if not tax_cols:
+        raise ValueError(f"No 'taxonomy', 'genus' or 'species' column found in {path}")
+    df = df.rename(columns={tax_cols[0]: 'taxonomy'})
+    if 'abundance' not in df:
+        raise ValueError(f"No 'abundance' column found in {path}")
+    total = df['abundance'].sum()
+    if total <= 0:
+        raise ValueError(f"All abundance values are zero or negative in {path}")
+    df['abundance_pct'] = df['abundance'] / total * 100
+    return df.sort_values('abundance_pct', ascending=False)
 
-# Parse arguments
-args = parser.parse_args()
+def stacked_bar(ax, df, title, legend_title):
+    taxa = df['taxonomy'].tolist()
+    vals = df['abundance_pct'].tolist()
+    # Use the new colormap API: no deprecation warning
+    cmap = matplotlib.colormaps.get('tab20', len(taxa))
+    bottom = 0.0
+    for i, (name, pct) in enumerate(zip(taxa, vals)):
+        ax.bar(0, pct, bottom=bottom, color=cmap(i), label=name)
+        bottom += pct
 
-# Load the TSV file based on the provided input file path
-df = pd.read_csv(args.input_file, sep='\t')
+    ax.set_title(f'{title} Level Abundance')
+    ax.set_xticks([0])
+    ax.set_xticklabels(['Total Sample'])
+    ax.set_ylabel('Relative Abundance (%)')
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title=legend_title)
 
-# Function to extract genus and species from the full taxonomy path
-def extract_genus_species(taxonomy):
-    parts = taxonomy.split(';')
-    
-    # If the taxonomy path has more than two levels, assume it's a full path
-    if len(parts) >= 2:
-        genus = parts[-2].strip()  # Second to last is genus
-        species = parts[-1].strip()  # Last is species
-    else:
-        genus = taxonomy.strip()
-        species = ''
-    
-    return genus, species
+def main():
+    p = argparse.ArgumentParser(
+        description="Plot side-by-side stacked barplots of genus- and species-level abundances.")
+    p.add_argument('species_file', help="TSV of species-level abundances")
+    p.add_argument('genus_file',   help="TSV of genus-level abundances")
+    p.add_argument('output_file',  help="Path to save the PNG")
+    args = p.parse_args()
 
-# Apply the function to extract genus and species
-df[['genus', 'species']] = df['taxonomy'].apply(lambda x: pd.Series(extract_genus_species(x)))
+    try:
+        species_df = load_and_normalise(args.species_file)
+        genus_df   = load_and_normalise(args.genus_file)
+    except Exception as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        sys.exit(1)
 
-# Calculate relative abundance (percentage)
-df['abundance'] = df['abundance'] / df['abundance'].sum() * 100
+    fig, axes = plt.subplots(ncols=2, figsize=(14, 8))
+    stacked_bar(axes[0], genus_df,   title='Genus',   legend_title='Genus')
+    stacked_bar(axes[1], species_df, title='Species', legend_title='Species')
+    plt.tight_layout()
+    fig.savefig(args.output_file, dpi=300)
+    # no stdout output on success
 
-# Aggregate by genus and species for plotting
-genus_df = df.groupby('genus')['abundance'].sum().reset_index()
-species_df = df.groupby('species')['abundance'].sum().reset_index()
-
-# Sort data to ensure consistent color assignment in the plot
-genus_df = genus_df.sort_values(by='abundance', ascending=False)
-species_df = species_df.sort_values(by='abundance', ascending=False)
-
-# Plotting
-fig, axes = plt.subplots(ncols=2, figsize=(14, 8))
-
-# Genus level stacked bar chart
-axes[0].bar([0], genus_df['abundance'].values, color=plt.cm.Paired.colors[:len(genus_df)], label=genus_df['genus'])
-axes[0].set_title('Genus Level Abundance')
-axes[0].set_xticks([0])
-axes[0].set_xticklabels(['Total Sample'])
-axes[0].set_ylabel('Relative Abundance (%)')
-
-# Species level stacked bar chart
-axes[1].bar([0], species_df['abundance'].values, color=plt.cm.Paired.colors[:len(species_df)], label=species_df['species'])
-axes[1].set_title('Species Level Abundance')
-axes[1].set_xticks([0])
-axes[1].set_xticklabels(['Total Sample'])
-axes[1].set_ylabel('Relative Abundance (%)')
-
-# Add legends
-axes[0].legend(genus_df['genus'], bbox_to_anchor=(1.05, 1), loc='upper left', title='Genus')
-axes[1].legend(species_df['species'], bbox_to_anchor=(1.05, 1), loc='upper left', title='Species')
-
-# Adjust layout and save the plot
-plt.tight_layout()
-plt.savefig(args.output_file, dpi=300)
+if __name__ == '__main__':
+    main()
