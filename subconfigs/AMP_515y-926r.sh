@@ -1,16 +1,15 @@
 #!/bin/bash
 # Filtering
-export max_length="1200"
+export max_length="900"
 export min_length="300"
 # Blastn CON
-export ident_CON_16s="90"
-export ident_CON_18s="90"
+export ident_HAC="97"
+export cov_HAC="70"
 # Blastn RAW
-export ident_RAW_16s="85"
-export ident_RAW_18s="85"
+export ident_RAW="90"
 # Bias correction
 export bias_factor_16s="1"
-export bias_factor_18s="2"
+export bias_factor_18s="0.4"
 # Database info
 export for_seq="GTGYCAGCMGCCGCGGTAA"
 export rev_seq="CCGYCAATTYMTTTRAGTTT"
