@@ -3,153 +3,168 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.Data import IUPACData
 from concurrent.futures import ProcessPoolExecutor, as_completed
-import multiprocessing
 
 def reverse_complement(seq):
-    """Generate the reverse complement of a DNA sequence."""
     return str(Seq(seq).reverse_complement())
 
 def replace_uracil_with_thymine(sequence):
-    """Replace all instances of 'U' with 'T' in the sequence."""
     return sequence.replace('U', 'T')
 
 def iupac_match(base, primer_base):
-    """Check if a nucleotide matches an IUPAC-encoded base, allowing for more mismatches."""
-    iupac_dict = IUPACData.ambiguous_dna_values
-    return base in iupac_dict[primer_base]
+    return base in IUPACData.ambiguous_dna_values[primer_base]
 
-def find_best_primer_hit(sequence, primers, start_range, end_range, min_identity=0.75, find_earliest=True):
-    """Find the best primer match in the sequence within the specified range."""
-    best_hit_position = -1
-    best_identity = 0.0
-
-    # Search within the specified range
-    search_segment = sequence[start_range:end_range]
-    full_primers = primers + [reverse_complement(primer) for primer in primers]
-
-    positions = []
-
-    for primer in full_primers:
-        for i in range(len(search_segment) - len(primer) + 1):
-            segment = search_segment[i:i + len(primer)]
-            
-            matches = sum(iupac_match(base, primer_base) for base, primer_base in zip(segment, primer))
-            identity = matches / len(primer)
-            
+def find_primer_hits(sequence, primers, start, end, min_identity):
+    """Return list of (position, identity, primer_length) for hits ≥ min_identity."""
+    hits = []
+    segment = sequence[start:end]
+    all_primers = primers + [reverse_complement(p) for p in primers]
+    for primer in all_primers:
+        plen = len(primer)
+        for i in range(len(segment) - plen + 1):
+            subseq = segment[i:i+plen]
+            matches = sum(iupac_match(b, pb) for b, pb in zip(subseq, primer))
+            identity = matches / plen
             if identity >= min_identity:
-                positions.append((start_range + i, identity))  # Adjust to global sequence position
+                hits.append((start + i, identity, plen))
+    return hits
 
-    if positions:
-        if find_earliest:
-            # Find the earliest match (lowest position)
-            best_hit_position, best_identity = min(positions, key=lambda x: x[0])
-        else:
-            # Find the latest match (highest position)
-            best_hit_position, best_identity = max(positions, key=lambda x: x[0])
+def update_progress(processed, trimmed, total):
+    percent = (processed / total) * 100 if total else 100
+    print(f"Processed {processed} sequences, {trimmed} trimmed ({percent:.2f}% done)", end='\r')
 
-    return best_hit_position
+def process_sequence(record, forward_primers, reverse_primers,
+                     forward_range, reverse_range, min_length, min_identity):
+    seq_str = replace_uracil_with_thymine(str(record.seq))
+    seq_len = len(seq_str)
+    if seq_len == 0:
+        return record
 
+    # Clamp user‐provided search windows to the actual sequence length
+    fr0 = max(0, forward_range[0])
+    fr1 = min(seq_len, forward_range[1])
+    r0  = max(0, reverse_range[0])
+    r1  = min(seq_len, reverse_range[1])
 
-def process_sequence(record, forward_primers, reverse_primers, forward_range, reverse_range, min_length):
-    """Trim a sequence based on forward and reverse primer matches."""
-    sequence = str(record.seq)
-    sequence = replace_uracil_with_thymine(sequence)
-    
-    if not sequence:
-        return record  # Return untrimmed if there's an issue with the sequence
+    # Find all forward/reverse hits
+    fwd_hits = find_primer_hits(seq_str, forward_primers, fr0, fr1, min_identity)
+    if not fwd_hits:
+        return record
+    rev_hits = find_primer_hits(seq_str, reverse_primers, r0, r1, min_identity)
+    if not rev_hits:
+        return record
 
-    # Find the earliest forward primer hit within the specified range
-    start_pos = find_best_primer_hit(sequence, forward_primers, forward_range[0], forward_range[1], find_earliest=True)
-    
-    if start_pos != -1:
-        # Trim sequence before the best forward primer hit
-        sequence = sequence[start_pos:]
-        
-        # Adjust the range for reverse primer search since sequence has been trimmed
-        reverse_range_adjusted = (reverse_range[0] - start_pos, reverse_range[1] - start_pos)
-        
-        # Find the latest reverse primer hit within the adjusted range
-        end_pos = find_best_primer_hit(sequence, reverse_primers, reverse_range_adjusted[0], reverse_range_adjusted[1], find_earliest=False)
-        
-        if end_pos != -1:
-            # Trim sequence after the best reverse primer hit
-            trimmed_seq = sequence[:end_pos + len(reverse_primers[0])]
-            
-            # Check if the trimmed sequence meets the minimum length requirement
-            if len(trimmed_seq) >= min_length:
-                record.seq = Seq(trimmed_seq)
-                return record
-    
-    # If trimming fails, return the original untrimmed sequence
+    # Estimate the “expected” amplicon length from midpoint of the two search ranges
+    f_mid = (forward_range[0] + forward_range[1]) / 2
+    r_mid = (reverse_range[0] + reverse_range[1]) / 2
+    avg_rev_len = sum(len(p) for p in reverse_primers) / len(reverse_primers)
+    expected_len = (r_mid - f_mid) + avg_rev_len
+
+    # Pick the primer-pair whose amplicon length is closest to expected_len,
+    # tie‐breaking by the highest combined primer identity
+    best_pair = None
+    best_diff = None
+    best_bonus = None
+    for fpos, fident, flen in fwd_hits:
+        for rpos, rident, rlen in rev_hits:
+            if rpos + rlen <= fpos:
+                continue
+            amp_len = (rpos + rlen) - fpos
+            diff = abs(amp_len - expected_len)
+            bonus = fident + rident
+            if (best_pair is None
+                or diff < best_diff
+                or (diff == best_diff and bonus > best_bonus)):
+                best_pair = (fpos, flen, rpos, rlen)
+                best_diff  = diff
+                best_bonus = bonus
+
+    if best_pair is None:
+        return record
+
+    start_pos, f_len, end_pos, r_len = best_pair
+    trimmed_seq = seq_str[start_pos:end_pos + r_len]
+    if len(trimmed_seq) < min_length:
+        return record
+
+    record.seq = Seq(trimmed_seq)
     return record
 
-
-def update_progress(total_count, trimmed_count, total_records):
-    """Update the user on the progress of trimming."""
-    percent_done = (total_count / total_records) * 100
-    print(f"Processed {total_count} sequences, {trimmed_count} trimmed ({percent_done:.2f}% done)", end='\r')
-
-def trim_sequences(input_fasta, output_fasta, forward_primers, reverse_primers, forward_range, reverse_range, min_length, processes, batch_size=100):
-    """Perform trimming on all sequences in the input FASTA using multiple processes."""
+def trim_sequences(input_fasta, output_fasta, forward_primers, reverse_primers,
+                   forward_range, reverse_range, min_length, processes,
+                   min_identity=0.75, batch_size=100):
     records = list(SeqIO.parse(input_fasta, "fasta"))
     total_records = len(records)
+    processed = 0
     trimmed_count = 0
-    total_count = 0
 
-    with open(output_fasta, "w") as output_handle:
+    with open(output_fasta, "w") as out_handle:
+        future_to_record = {}
+        pending = []
         with ProcessPoolExecutor(max_workers=processes) as executor:
-            futures = []
             for record in records:
-                futures.append(executor.submit(process_sequence, record, forward_primers, reverse_primers, forward_range, reverse_range, min_length))
-                
-                if len(futures) >= batch_size:
-                    for future in as_completed(futures):
-                        result = future.result()
-                        total_count += 1
-                        if result and result.seq != record.seq:
-                            SeqIO.write(result, output_handle, "fasta")
+                fut = executor.submit(
+                    process_sequence,
+                    record,
+                    forward_primers,
+                    reverse_primers,
+                    forward_range,
+                    reverse_range,
+                    min_length,
+                    min_identity
+                )
+                future_to_record[fut] = record
+                pending.append(fut)
+                if len(pending) >= batch_size:
+                    for f in as_completed(pending):
+                        orig = future_to_record.pop(f)
+                        result = f.result()
+                        processed += 1
+                        if result.seq != orig.seq:
                             trimmed_count += 1
-                        else:
-                            SeqIO.write(record, output_handle, "fasta")
-                    futures = []  # Clear completed batch
-                
-                if total_count % (batch_size * 10) == 0:
-                    update_progress(total_count, trimmed_count, total_records)
-
-            for future in as_completed(futures):
-                result = future.result()
-                total_count += 1
-                if result and result.seq != record.seq:
-                    SeqIO.write(result, output_handle, "fasta")
+                        SeqIO.write(result, out_handle, "fasta")
+                    pending = []
+                    if processed % (batch_size * 10) == 0:
+                        update_progress(processed, trimmed_count, total_records)
+            # process any remaining
+            for f in as_completed(pending):
+                orig = future_to_record.pop(f)
+                result = f.result()
+                processed += 1
+                if result.seq != orig.seq:
                     trimmed_count += 1
-                else:
-                    SeqIO.write(record, output_handle, "fasta")
+                SeqIO.write(result, out_handle, "fasta")
+            update_progress(processed, trimmed_count, total_records)
+            print()
 
-            update_progress(total_count, trimmed_count, total_records)
-            print()  # Move to the next line after final update
-
-    return trimmed_count, total_count - trimmed_count
+    return trimmed_count, total_records - trimmed_count
 
 if __name__ == "__main__":
     if len(sys.argv) != 9:
-        print("Usage: python script.py <input_fasta> <output_fasta> <processes> <forward_primer> <reverse_primer> <forward_range> <reverse_range> <min_length>")
+        print("Usage: python script.py <input_fasta> <output_fasta> <processes> "
+              "<forward_primer> <reverse_primer> <forward_range> "
+              "<reverse_range> <min_length>")
         sys.exit(1)
 
-    input_fasta = sys.argv[1]
-    output_fasta = sys.argv[2]
-    processes = int(sys.argv[3])
-    
+    input_fasta   = sys.argv[1]
+    output_fasta  = sys.argv[2]
+    processes     = int(sys.argv[3])
     forward_primers = [sys.argv[4]]
     reverse_primers = [sys.argv[5]]
-
-    # Convert ranges from string to tuples of integers
     forward_range = tuple(map(int, sys.argv[6].split('-')))
     reverse_range = tuple(map(int, sys.argv[7].split('-')))
-    
-    min_length = int(sys.argv[8])
+    min_length    = int(sys.argv[8])
 
-    # Run the trimming process
-    trimmed_count, untrimmed_count = trim_sequences(input_fasta, output_fasta, forward_primers, reverse_primers, forward_range, reverse_range, min_length, processes)
+    trimmed, untrimmed = trim_sequences(
+        input_fasta,
+        output_fasta,
+        forward_primers,
+        reverse_primers,
+        forward_range,
+        reverse_range,
+        min_length,
+        processes
+    )
 
-    print(f"Successfully trimmed sequences: {trimmed_count}")
-    print(f"Sequences left untrimmed: {untrimmed_count}")
+    print(f"Successfully trimmed sequences: {trimmed}")
+    print(f"Sequences left untrimmed: {untrimmed}")
+
