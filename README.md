@@ -23,7 +23,7 @@ cd ./NAP
 
 # The conda environment should be named 'nap_env'.  
 # Be sure to activate it before using the pipeline tools.
-conda env create -f environment.yml
+conda env create -f environment.yaml
 
 # If 'nap update-database' fails, check that your ~/.bashrc  
 # has been correctly updated to include 'nap' as an alias.
