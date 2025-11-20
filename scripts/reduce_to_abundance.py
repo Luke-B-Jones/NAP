@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""
-Summarise BLASTN tabular output into taxonomic abundances while collapsing
-strain-level variants to species level.
 
-Usage:
-    python script.py <input_file> <output_file>
-"""
 import sys
 import csv
 from collections import defaultdict
