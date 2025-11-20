@@ -16,20 +16,20 @@ By **Luke B. Jones**
 ## **How to set up**
 
 ```
-# Clone the repository and set up NAP
+# Clone the repository and set up NAP, refresh bashrc to ensure PATH is working
 git clone https://github.com/Luke-B-Jones/NAP.git
 cd ./NAP
 ./build.sh
+source ~/.bashrc
 
-# The conda environment should be named 'nap_env'.  
-# Be sure to activate it before using the pipeline tools.
+# The conda environment should be named 'nap_env'.
 conda env create -f environment.yaml
 
 # If 'nap update-database' fails, check that your ~/.bashrc  
 # has been correctly updated to include 'nap' as an alias.
 
-# If you intend to use primers that are not default,  
-# skip this final step and see the User Manual (Parts 1 and 2).
+# If you intend to use primers that are not default, skip this final step and see the User Manual (Parts 1 and 2).
+conda activate nap_env
 nap update-database SILVA_138.2_SSU_NR99
 ```
 
