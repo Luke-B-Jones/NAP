@@ -14,7 +14,8 @@ mv "${loc}/subconfigs/" "${loc}/bin/"
 mkdir -p "${loc}/bin/databases"
 mkdir -p "${loc}/bin/logs"
 ln -s "${loc}/bin/scripts/nap.sh" "${loc}/nap"
-echo "alias nap='bash "${loc}/bin/scripts/nap.sh"'" >> ~/.bashrc
+# update ~/.bashrc 
+echo "export PATH=\"${loc}:\$PATH\"" >> ~/.bashrc
 #
 echo "# Populating the config (2 of 4)"
 # Update config via variable terminology
