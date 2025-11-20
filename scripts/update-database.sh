@@ -9,12 +9,6 @@ if [ -z "$1" ]; then
     echo "${er}ERROR:${in} please provide prefix to match fasta (which must be in /databases/) ${r}"
     exit 0
 fi
-source "/opt/miniconda/etc/profile.d/conda.sh"
-conda activate nap_env
-if ! conda activate nap_env > /dev/null 2>&1; then
-  echo "ERROR: Failed to activate conda environment 'nap_env'."
-  exit 1
-fi
 filter_path="${w_d}/bin/scripts/${filter}.sh"
 input="${w_d}/bin/databases/${prefix}.fasta"
 database_dir="${w_d}/bin/databases/"
