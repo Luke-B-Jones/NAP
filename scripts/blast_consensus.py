@@ -1,23 +1,4 @@
 #!/usr/bin/env python3
-"""
-blast_consensus.py
-------------------
-Create a consensus taxonomic assignment for each query sequence in a BLAST
-output (format 6 with 13 columns, where column 13 is `stitle`).
-
-Fixes over the original version
-===============================
-1. Safely handles lines whose final taxon segment contains **only one word** –
-   species is recorded as ``sp.`` instead of raising IndexError.
-2. Removes square/round/curly brackets and quotes around the genus, so
-   ``[Mycobacterium]`` and ``Mycobacterium`` are treated identically.
-3. Emits warnings (to *stderr*) when it skips an obviously malformed line
-   (fewer than 13 columns or bad numeric values).
-
-Usage
------
-    python blast_consensus.py <blast_outfmt6> <consensus_output>
-"""
 
 import sys
 import re
