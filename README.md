@@ -1,56 +1,160 @@
-# ***NAP*** - Nanopore sequencing derived Amplicon Pipeline
-By Luke B.Jones
+# **NAP — Nanopore sequencing-derived Amplicon Pipeline**
+By **Luke B. Jones**
 
-## **Requirments**
-(1) Conda
+![NAP Pipeline Workflow](pipeline.png)
 
-(2) PC capable of handling large datasets (or alternatively, free time), recommend >20GB RAM and CPU with >4 cores
+---
 
-## **How to setup:**
-`````
-# Clone repo, and set up NAP
+## **Requirements**
+
+1. **Conda**
+2. **Hardware:** A PC capable of handling large datasets (or alternatively, sufficient time).  
+   Recommended: **>20 GB RAM** and a **CPU with >4 cores**.
+
+---
+
+## **How to set up**
+
+```
+# Clone the repository and set up NAP
 git clone https://github.com/Luke-B-Jones/NAP.git
 cd ./NAP
 ./build.sh
-# The conda env should be named 'nap_env', be sure to activate it before use of the pipeline tools.
+
+# The conda environment should be named 'nap_env'.  
+# Be sure to activate it before using the pipeline tools.
 conda env create -f environment.yml
-# If nap update-database fails, check your ~/.bashrc has been correctly updated to include nap as alias
-# If you intend to use primers which are not default, skip this last step, see User Manual (parts 1 and 2).
+
+# If 'nap update-database' fails, check that your ~/.bashrc  
+# has been correctly updated to include 'nap' as an alias.
+
+# If you intend to use primers that are not default,  
+# skip this final step and see the User Manual (Parts 1 and 2).
 nap update-database SILVA_138.2_SSU_NR99
-`````
-## **How to use:**
-ALWAYS ensure your input data for a project is stored in ./raw_data before running these commands, or consider reworking the wrapper to suit your needs.
-`````
-# If you want to set up contamination (below assumes ./raw_data/*13*.fasta corisponds to B1 - blank 1)
+```
+
+---
+
+## **How to use**
+
+**Always** ensure your project’s input data is stored in `./raw_data` before running any commands,  
+unless you choose to modify the wrapper to suit your own directory structure.
+
+```
+# Example: Setting up contamination controls  
+# (assumes ./raw_data/*13*.fasta corresponds to B1 - Blank 1)
+
 nap pipe 13 B1 14 B2 15 B3
 nap decon ./B1/B1*SPECIES-LEVEL.tsv ./B2/B2*SPECIES-LEVEL.tsv ./B3/B3*SPECIES-LEVEL.tsv
-`````
-Once decontamination is turned on, proceed to data analysis - you can confirm this be checking /config.sh, if variables blank_read_count has content and blank_active="1", then your good to go.
-`````
-# Again, assumes ./raw_data/*13*.fasta corisponds to S1 - sample 1
+```
+
+Once decontamination is enabled, proceed to data analysis.  
+You can confirm this by checking `config.sh`:  
+if the variable `blank_read_count` has content and `blank_active="1"`, you are ready to proceed.
+
+```
+# Example: Processing samples  
+# (assumes ./raw_data/*13*.fasta corresponds to S1 - Sample 1)
+
 nap pipe 3 S1 2 S2 1 S3
-`````
-## **Interpritation:**
-(1) pipe score: values ranging from 0-100, calculated using Phred and read count, where >90% is considered a good output.
-(2) Due to the nature of nanopore sequencing-based amplicons, low abundance artifacts will likely be present in any score <90%.
-(3) Assuming 20% of reads are >Q30, we recommend a raw input of >500k reads.
+```
+
+---
+
+## **Interpretation**
+
+1. **Pipe score:** Ranges from 0–100, calculated using Phred quality and read count.  
+   Values **>90** are considered high-quality outputs.
+
+2. Due to the nature of nanopore sequencing-based amplicons,  
+   **low-abundance artefacts** may be present in any run scoring **<90**.
+
+3. Assuming ~20% of reads are >Q30, we recommend a raw input of  
+   **>500,000 reads per sample**.
+
+---
 
 ## **User Manual**
-(1) DATABASE SETUP
-The classification database is set up in a simple process: (1) User downloads database; (2) /scripts/update-database handles basic conserved work, but offloads filtration to /scripts/mammalian_microbiome_inclusion.sh, which by default removes uncultured/metagenomic-derived/unclassified/chlorophil-derived/unlikely eukaryotes for microbiome research; (3) remaining reference reads are trimmed in length to isolate amplified regions (this relies on /subconfigs/AMP* configuration pointed to by the /config).
 
-Users wishing to use a different database should consider how the database is annotated, and update /scripts/mammalian_microbiome_inclusion.sh awk (lines 21 and 29) accordingly. Those who wish to modify the awks to include/exclude different taxa can do so with ease; consider checking your database of choice for classications used. Furthermore, should a user wish to set up a new primer set for the pipeline, be sure to produce the required subconfig (as /subconfigs/AMP*${primer_name}.sh), amend the /config.sh with export amplicon_pre_set="${primer_name}", and then rerun the database setup.
+### **1. Database setup**
 
-(2) CUSTOM AMPLICONS
-As outlined above, custom amplicons are added to the pipeline by adding a new entry to /subconfigs/AMP*.sh, where * is your primer name, and will be used by changing the config to reflect this (using variable amplicon_pre_set=""). Inside this, all details should be given using the guide in /subconfigs/AMP_template.sh.
+The classification database is set up via the following process:
 
-(3) USING NONE BARCODED RAW DATA.
-Inside /nap wrapper, starting line 99, the wrapper extracts the file path of a barcoded dataset from the number given via commandline. nap pipe 14 S1, for example, tells the pipeline to look at ./raw_data/*barcode14.fastq - and have this be raw input for sample S1. Users can safely modify this if using data with different naming conventions.
+1. The user downloads the desired database.
+2. `scripts/update-database` performs conserved processing steps, and  
+   defers filtering to `scripts/mammalian_microbiome_inclusion.sh`, which by default removes:
+   - uncultured entries  
+   - metagenome-derived entries  
+   - unclassified entries  
+   - chlorophyll-derived sequences  
+   - unlikely eukaryotes (for microbiome research)
 
+3. Remaining reference reads are trimmed to isolate amplified regions,  
+   using the primer configuration specified in `subconfigs/AMP*` (as set in `config.sh`).
 
+Users wishing to use a different database should:
 
+- examine how the database is annotated  
+- update the `awk` commands in `scripts/mammalian_microbiome_inclusion.sh` (lines 21 and 29) accordingly  
+- consider the classification conventions used by their chosen database
 
-## **THANKS TO:**
-MORGAN COCKRILL (MSc University of Bath): Improved 'pipe' modules robustness and QC section
+To configure a **new primer set**, users should:
 
-JOSEPHINE ILOTT (MSc University of Bath): Wrote decontamination python
+1. Create a new subconfig:  
+   `subconfigs/AMP_${primer_name}.sh`
+2. Update `config.sh`:  
+   `export amplicon_pre_set="${primer_name}"`
+3. Re-run database setup.
+
+---
+
+### **2. Custom amplicons**
+
+Custom amplicons are added by creating a new file in:
+
+```
+subconfigs/AMP*.sh
+```
+
+(where `*` is the primer name), and activating it in `config.sh` via:
+
+```
+amplicon_pre_set=""
+```
+
+Users should follow the template and guidance in:
+
+```
+subconfigs/AMP_template.sh
+```
+
+---
+
+### **3. Using non-barcoded raw data**
+
+Inside the `nap` wrapper (around line 99), the script extracts the path of a barcoded dataset  
+based on the numeric identifier supplied on the command line.
+
+Example:
+
+```
+nap pipe 14 S1
+```
+
+This instructs the pipeline to use:
+
+```
+./raw_data/*barcode14.fastq
+```
+
+as the raw input for sample `S1`.
+
+Users with differently named raw data may safely modify this part of the wrapper.
+
+---
+
+## **Thanks to**
+
+- **Morgan Cockrill (MSc, University of Bath)** — Improved robustness of `pipe` modules and QC section  
+- **Josephine Ilott (MSc, University of Bath)** — Authored the decontamination Python module
+
