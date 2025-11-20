@@ -1,16 +1,5 @@
 #!/usr/bin/env python3
-"""
-bias_correct_mixed.py
 
-Usage
------
-python bias_correct_mixed.py \
-       --in  mixed_abundance.tsv \
-       --o   corrected.tsv \
-       --16s 2.5 \
-       --18s 1.3 \
-       --log run.log
-"""
 import argparse
 import pandas as pd
 import sys
