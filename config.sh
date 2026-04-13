@@ -7,7 +7,7 @@ export norm_factor="100000" # Normalisation factor
 export norm_filter="0.0005"    # Used to filter low abundance reads (often erronious $norm_factor * $norm_filter = lowest allowed abundance)
 export max_depth="230000"   # Recommend 'true max' + 20%
 export min_Q_reads="5000"     # MIn number of reads going past phred filtering to continue pipeline
-# Phred scaling
+# Phred scaling (defaults are recommended to be changes to match your data quality)
 export phred_2000k="35" # Phred if input is >2.0 million reads
 export phred_1500k="33" # Phred if input is >1.5 million reads
 export phred_500k="30"  # Phred if input is >0.5 million reads
@@ -17,11 +17,12 @@ export phred_100k="25"  # Phred if input is >0.1 million reads
 export phred_50k="23"   # Phred if input is >50,000 reads
 export phred_fail="20"  # Phred if <50,000 reads
 # Hardware
-export all_cores="32"
-export all_RAM="100967632896"
+export all_cores=""
+export all_RAM=""
 # Databases and info
 export default_database_version="138.2"
 export default_database_name='SILVA'
+export filter="mammalian_microbiome_inclusive"
 export fasta_18s_database=""
 export fasta_16s_database=""
 export fasta_filtered_database=""
