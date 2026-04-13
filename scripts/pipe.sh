@@ -37,7 +37,7 @@ python "${progress_monitor}" "${progress_file}" "${progress_info}" "${total_task
 # Save the PID of the background Python
 PYTHON_PID=$!
 # Ensure exit cleans up after itself
-trap 'kill ${PYTHON_PID} 2>/dev/null; rm -f ${progress_file}; rm -f ${progress_info}; mv ${log} ${current_dir}/${id}/logs/; exit' EXIT INT TERM
+trap 'kill ${PYTHON_PID} 2>/dev/null; rm -f "${progress_file}" "${progress_info}"; mkdir -p "${current_dir}/${id}/logs"; mv "${log}" "${current_dir}/${id}/logs/" 2>/dev/null; exit' EXIT INT TERM
 # Update (weird fix to python issue)
 echo "0,...and so it begins: ${input_count} raw reads" > "${progress_file}"
 echo "|||||||||||||||||" > "${progress_info}"
