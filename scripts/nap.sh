@@ -200,8 +200,13 @@ if [ "$TOOL_NAME" = "pipe" ]; then
                 echo "${er}ERROR:${in} Invalid table format in ${input_table}. Use tab-separated: <full_path><TAB><sample_name> ${r}"
                 exit 1
             fi
+            # Identify folder output
+            row_out_dir="$table_out_dir"
+            if [ -n "$extra" ]; then
+                row_out_dir="$extra"
+            fi
 
-            run_pipe_sample "$sample_file" "$sample_id" "$table_out_dir"
+            run_pipe_sample "$sample_file" "$sample_id" "$row_out_dir"
         done < "$input_table"
 
     # Mode 2: direct fastq input
