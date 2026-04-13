@@ -24,8 +24,8 @@ else
 fi
 # Append a separator to the log file
 echo -e "///////////////////////////////////////////////////////////////////////////////////////////" >> "${log}"
-mkdir -p "./${id}" # Create a directory for the sample ID
-cd "./${id}"
+mkdir -p "${current_dir}/${id}" # Create a directory for the sample ID
+cd "${current_dir}/${id}"
 # Prepare terminal display
 total_tasks=9
 progress_file="${current_dir}/${id}/progress.txt" # Define progress (in-terminal)
