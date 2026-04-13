@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sed \
     bc \
     ncurses-bin \
+    vim \
     && rm -rf /var/lib/apt/lists/*
 
 RUN case "${TARGETARCH}" in \
@@ -41,13 +42,13 @@ COPY . /opt/NAP
 RUN chmod +x /opt/NAP/build.sh && \
     chmod +x /opt/NAP/scripts/*.sh && \
     conda env create -n nap_env -f /opt/NAP/environment.yaml && \
-    /bin/bash -lc "source ${CONDA_DIR}/etc/profile.d/conda.sh && conda activate nap_env && /opt/NAP/build.sh" && \
-    ln -sf /opt/NAP/scripts/nap.sh /usr/local/bin/nap && \
-    mkdir -p /workspace /opt/NAP/logs && \
-    chmod -R a+rX /opt/NAP && \
-    chmod -R a+rwX /workspace /opt/NAP/logs && \
-    echo '. /opt/conda/etc/profile.d/conda.sh' >> /root/.bashrc && \
-    echo 'conda activate nap_env' >> /root/.bashrc && \
+    /bin/bash -lc "source ${CONDA_DIR}/etc/profile.d/conda.sh && \
+    conda activate nap_env && \
+    cd /opt/NAP && \
+    ./build.sh && \
+    ./nap update-database SILVA_138.2_SSU_NR99" && \
+    ln -sf /opt/NAP/nap /usr/local/bin/nap && \
+    mkdir -p /workspace && \
     conda clean -afy
 
 WORKDIR /workspace
