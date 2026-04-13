@@ -2,7 +2,7 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV CONDA_DIR=/opt/conda
-ENV PATH=${CONDA_DIR}/bin:${CONDA_DIR}/envs/nap_env/bin:/usr/local/bin:${PATH}
+ENV PATH=/opt/NAP:${CONDA_DIR}/envs/nap_env/bin:${CONDA_DIR}/bin:${PATH}
 
 ARG TARGETARCH
 
@@ -48,34 +48,31 @@ RUN chmod +x /opt/NAP/build.sh && \
     cd /opt/NAP && \
     ./build.sh && \
     ./nap update-database SILVA_138.2_SSU_NR99" && \
-    ln -sf /opt/NAP/nap /usr/local/bin/nap && \
-    ln -sf /opt/conda/envs/nap_env/bin/python /usr/local/bin/python && \
-    ln -sf /opt/conda/envs/nap_env/bin/python3 /usr/local/bin/python3 && \
     mkdir -p /workspace && \
     conda clean -afy
 
-# Create a normal default runtime user (UID/GID 1000 suits most Linux desktops)
 RUN groupadd -g 1000 napuser && \
     useradd -m -u 1000 -g 1000 -s /bin/bash napuser && \
-    mkdir -p /home/napuser && \
-    chown -R napuser:napuser /home/napuser /workspace
+    mkdir -p /home/napuser /workspace && \
+    chown -R napuser:napuser /home/napuser /workspace /opt/NAP/bin/logs /opt/NAP/bin/databases /opt/NAP/config.sh && \
+    chmod -R ug+rwX /workspace /opt/NAP/bin/logs /opt/NAP/bin/databases && \
+    chmod ug+rw /opt/NAP/config.sh
 
-# Auto-activate conda for interactive shells for all users
 RUN echo '. /opt/conda/etc/profile.d/conda.sh' >> /etc/bash.bashrc && \
-    echo 'conda activate nap_env' >> /etc/bash.bashrc
+    echo 'conda activate nap_env >/dev/null 2>&1 || true' >> /etc/bash.bashrc
 
-# Inline entrypoint so no extra file is needed
 RUN printf '%s\n' \
 '#!/bin/bash' \
 'set -e' \
 'source /opt/conda/etc/profile.d/conda.sh' \
-'conda activate nap_env' \
+'conda activate nap_env >/dev/null 2>&1 || true' \
 'exec "$@"' \
 > /usr/local/bin/docker-entrypoint.sh && \
     chmod +x /usr/local/bin/docker-entrypoint.sh
 
 WORKDIR /workspace
 USER napuser
+ENV HOME=/home/napuser
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["bash"]
