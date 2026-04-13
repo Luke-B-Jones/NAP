@@ -32,7 +32,7 @@ if [[ "$1" == "pipe" ]]; then
     if [[ "$2" == "-h" || "$2" == "--help" ]]; then
         echo "${er} Usage:${in} nap pipe <path/to/sample.fastq> <sample_name> ... ${r}"
         echo "${in}        nap pipe <sample_table.tsv> ${r}"
-        echo "${in} Table format:${r} column 1 = full fastq path, column 2 = sample name (tab separated), no header row ${r}"
+        echo "${in} ...alternatively, header-free table input:${r} <full fastq path> /TAB/ <sample name> /TAB/ <output folder> ${r}"
         exit 0
     fi
 fi
@@ -98,27 +98,39 @@ if [ "$TOOL_NAME" = "update-database" ]; then
 fi
 
 
+
 # Script to run 'nap pipe'
 if [ "$TOOL_NAME" = "pipe" ]; then
     # Check input exists
     if [ $# -lt 1 ]; then
         echo "${in}Format:${r} nap pipe <path/to/sample.fastq> <sample_name> ... ${r}"
         echo "${in}   or:${r} nap pipe <sample_table.tsv> ${r}"
+        echo "${in}   or:${r} nap pipe <sample_table.tsv> <output_directory> ${r}"
         display_help
         exit 1
     fi
+
     # Prepare log file
     log_file="${w_d}/bin/logs/$(date +'%Y%m%d_%H-%M-%S')_pipe_log.txt"
     echo "Date: $(date)" > "$log_file"
     echo -e "\nSample ID\tFile Location" >> "$log_file"
+
+    # Function to test whether a file is a table input
+    is_table_input() {
+        local input_file="$1"
+        [ -f "$input_file" ] && head -n 1 "$input_file" | grep -q $'\t'
+    }
     # Function to run one sample
     run_pipe_sample() {
         sample_file="$1"
         sample_id="$2"
+        mode_dir="$3"
+
         if [ ! -f "$sample_file" ]; then
             echo "${er}ERROR:${in} Input file not found: ${sample_file} ${r}"
             exit 1
         fi
+
         echo -e "${sample_id}\t${sample_file}" >> "$log_file"
         # Check temrinal size to prevent issues with progres bar
         min_width=150
@@ -134,11 +146,26 @@ if [ "$TOOL_NAME" = "pipe" ]; then
             done
         fi
 
-        bash "${sub}/pipe.sh" "${sample_file}" "${sample_id}" "${log_file}"
+        bash "${sub}/pipe.sh" "${sample_file}" "${sample_id}" "${log_file}" "${mode_dir}"
     }
-    # Mode 1: nap pipe <table.tsv>
-    if [ $# -eq 1 ] && [ -f "$1" ]; then
+
+    # Mode 1: nap pipe <sample_table.tsv> OR nap pipe <sample_table.tsv> <output_directory>
+    if is_table_input "$1"; then
         input_table="$1"
+
+        if [ $# -eq 1 ]; then
+            table_out_dir="0"
+        elif [ $# -eq 2 ]; then
+            table_out_dir="$2"
+            if [ ! -d "$table_out_dir" ]; then
+                echo "${er}ERROR:${in} Output directory not found: ${table_out_dir} ${r}"
+                exit 1
+            fi
+        else
+            echo "${er}ERROR:${in} Table mode format is: nap pipe <sample_table.tsv> <optional_output_directory> ${r}"
+            exit 1
+        fi
+
         while IFS=$'\t' read -r sample_file sample_id extra || [ -n "$sample_file" ]; do
             # Skip empty lines and comments
             if [ -z "$sample_file" ]; then
@@ -147,6 +174,7 @@ if [ "$TOOL_NAME" = "pipe" ]; then
             if [[ "$sample_file" =~ ^# ]]; then
                 continue
             fi
+
             # Skip simple header row if present
             lower_file=$(echo "$sample_file" | tr '[:upper:]' '[:lower:]')
             lower_id=$(echo "$sample_id" | tr '[:upper:]' '[:lower:]')
@@ -159,19 +187,20 @@ if [ "$TOOL_NAME" = "pipe" ]; then
                 echo "${er}ERROR:${in} Invalid table format in ${input_table}. Use tab-separated: <full_path><TAB><sample_name> ${r}"
                 exit 1
             fi
-            run_pipe_sample "$sample_file" "$sample_id"
+
+            run_pipe_sample "$sample_file" "$sample_id" "$table_out_dir"
         done < "$input_table"
 
     # Mode 2: nap pipe <path> <sample_name> <path2> <sample_name2> ...
     else
         if [ $(( $# % 2 )) -ne 0 ]; then
-            echo "${er}ERROR:${in} Invalid format. Use path/sample_name pairs, or a single table file ${r}"
+            echo "${er}ERROR:${in} Invalid format. Use path/sample_name pairs, or a table file ${r}"
             exit 1
         fi
         while [ $# -ge 2 ]; do
             sample_file="$1"
             sample_id="$2"
-            run_pipe_sample "$sample_file" "$sample_id"
+            run_pipe_sample "$sample_file" "$sample_id" "0"
             shift 2
         done
     fi
