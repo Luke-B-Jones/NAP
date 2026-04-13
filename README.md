@@ -7,7 +7,7 @@ By **Luke B. Jones**
 
 ## **Requirements**
 
-1. **Conda**
+1. **Docker**
 2. **Hardware:** A PC capable of handling large datasets (or alternatively, sufficient time).  
    Recommended: **>20 GB RAM** and a **CPU with >4 cores**.
 
@@ -16,47 +16,74 @@ By **Luke B. Jones**
 ## **How to set up**
 
 ```
-# Clone the repository and set up NAP, refresh bashrc to ensure PATH is working
+# Clone the git and move into dir
 git clone https://github.com/Luke-B-Jones/NAP.git
 cd ./NAP
-./build.sh
+
+# Establish the nap wrapper (not manditory, just easier for users)
+echo "alias nap_activate='bash $(pwd)/nap_docker_wrap.sh'" >> ~/.bashrc
 source ~/.bashrc
 
-# The conda environment should be named 'nap_env'.
-conda env create -f environment.yaml
+# Build the docker image
+docker build --no-cache -t nap:latest .
 
-# If 'nap update-database' fails, check that your ~/.bashrc  
-# has been correctly updated to include 'nap' as an alias.
-
-# If you intend to use primers that are not default, skip this final step and see the User Manual (Parts 1 and 2).
-conda activate nap_env
-nap update-database SILVA_138.2_SSU_NR99
+# Activate the image
+nap_activate /home/luke/Documents/data
 ```
 
 ---
 
 ## **How to use**
+# *basal use*
 
-**Always** ensure your project’s input data is stored in `./raw_data` before running any commands,  
-unless you choose to modify the wrapper to suit your own directory structure.
+Data is ran through the pipeline using `nap pipe`, to which data in two ways
 
+(1) Directly providing files via commandline
 ```
-# Example: Setting up contamination controls  
-# (assumes ./raw_data/*13*.fasta corresponds to B1 - Blank 1)
+# Single or multi input via commandline, given as <path to fastq> <sample id> - output folder is ./$sample_id
+# Single input example
+nap pipe /path/barcode.fastq B1
+# multi input example
+nap pipe /path/barcode13.fastq B1 /path/barcode14.fastq B2 /path/barcode15.fastq B3 
+```
+(2) Provide a table
+```
+# Provoding a table allows control over output location
+nap pipe /path/table.tsv
 
-nap pipe 13 B1 14 B2 15 B3
+# Table should be a three column, no header, tab seporated .TSV (must be .tsv named). Example content
+/home/luke/Documents/data/ARCHIVE/rat_project/CO/raw_data/80793809db7ab12ecb5727975f1307826551ee7e_SQK-NBD114-24_barcode13.fastq	test-1	/home/luke/Documents/data/ARCHIVE/rat_project/TEST-1
+/home/luke/Documents/data/ARCHIVE/rat_project/CO/raw_data/80793809db7ab12ecb5727975f1307826551ee7e_SQK-NBD114-24_barcode15.fastq	test-2	/home/luke/Documents/data/ARCHIVE/rat_project/TEST-2
+```
+# *decontamination*
+If you run `nap pipe` before setting up decontamination, samples will simply skip decontamination step without flagging in terminal.
+
+To setup decontamination you must first identify contaminatants. You have two options:
+(1) RECOMMENDED method
+```
+# Sequence blanks from your setup/lab, run these through `nap pipe` 
+nap pipe /path/barcode45.fastq B1 /path/barcode46.fastq B2 /path/barcode47.fastq B3
+# Then pass nap decon the resulting outputs
 nap decon ./B1/B1*SPECIES-LEVEL.tsv ./B2/B2*SPECIES-LEVEL.tsv ./B3/B3*SPECIES-LEVEL.tsv
+# nap decon will update the contig, activating decontamination mode (blank_active turns from 0 to 1) and providing a path to blank table
 ```
-
-Once decontamination is enabled, proceed to data analysis.  
-You can confirm this by checking `config.sh`:  
-if the variable `blank_read_count` has content and `blank_active="1"`, you are ready to proceed.
-
+(2) Manual method (not recommended, can inconsistent results)
 ```
-# Example: Processing samples  
-# (assumes ./raw_data/*13*.fasta corresponds to S1 - Sample 1)
+# If you do not have lab blanks, but you know contaminants (from another project..etc), simply update config.sh manually.
 
-nap pipe 3 S1 2 S2 1 S3
+# Update blank to active
+nap config blank_active=1
+
+# Provide 3 column table (more details below)
+nap config blank_loc=/path/blank.tsv
+
+# Provide the number (NUM) of reads represented in table
+nap config blank_read_count=NUM
+
+# table format should include taxa, normalised abundance, and prevolance across blanks (for manual, mark all as 1)
+taxonomy	abundance	prevalence
+Acidovorax sp.	101.8737322598151	1.0
+Acinetobacter johnsonii	104.08898831717624	0.3333333333333333
 ```
 
 ---
@@ -157,4 +184,5 @@ Users with differently named raw data may safely modify this part of the wrapper
 
 - **Morgan Cockrill (MSc, University of Bath)** — Improved robustness of `pipe` modules and QC section  
 - **Josephine Ilott (MSc, University of Bath)** — Authored the decontamination Python module
+
 
