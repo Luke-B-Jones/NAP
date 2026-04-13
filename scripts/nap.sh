@@ -122,12 +122,12 @@ if [ "$TOOL_NAME" = "pipe" ]; then
         echo -e "${sample_id}\t${sample_file}" >> "$log_file"
         # Check temrinal size to prevent issues with progres bar
         min_width=150
-        current_width=$(tput cols)
+        current_width=$(tput cols < /dev/tty)
         if [ "$current_width" -lt "$min_width" ]; then
-            echo "${er}WARNING:${in} resize your terminal to at least $min_width ($current_width current) columns for proper display"
+            echo "${er}WARNING:${in} resize your terminal to at > $min_width ($current_width current) columns for proper display"
             while [ "$current_width" -lt "$min_width" ]; do
-                read -p "Press Enter after resizing your terminal..."
-                current_width=$(tput cols)
+                read -r -p "Press Enter after resizing your terminal..." < /dev/tty
+                current_width=$(tput cols < /dev/tty)
                 if [ "$current_width" -lt "$min_width" ]; then
                     echo "${er}ERROR:${in} Terminal is $current_width, must be >$min_width"
                 fi
