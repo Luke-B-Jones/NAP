@@ -98,7 +98,6 @@ if [ "$TOOL_NAME" = "update-database" ]; then
 fi
 
 
-
 # Script to run 'nap pipe'
 if [ "$TOOL_NAME" = "pipe" ]; then
     # Check input exists
@@ -115,11 +114,16 @@ if [ "$TOOL_NAME" = "pipe" ]; then
     echo "Date: $(date)" > "$log_file"
     echo -e "\nSample ID\tFile Location" >> "$log_file"
 
-    # Function to test whether a file is a table input
-    is_table_input() {
+    # Function to classify input type by extension
+    get_input_type() {
         local input_file="$1"
-        [ -f "$input_file" ] && head -n 1 "$input_file" | grep -q $'\t'
+        case "$input_file" in
+            *.tsv) echo "table" ;;
+            *.fastq|*.fastq.gz|*.fq|*.fq.gz) echo "fastq" ;;
+            *) echo "unknown" ;;
+        esac
     }
+
     # Function to run one sample
     run_pipe_sample() {
         sample_file="$1"
@@ -132,9 +136,11 @@ if [ "$TOOL_NAME" = "pipe" ]; then
         fi
 
         echo -e "${sample_id}\t${sample_file}" >> "$log_file"
+
         # Check temrinal size to prevent issues with progres bar
         min_width=150
         current_width=$(tput cols < /dev/tty)
+
         if [ "$current_width" -lt "$min_width" ]; then
             echo "${er}WARNING:${in} resize your terminal to at > $min_width ($current_width current) columns for proper display"
             while [ "$current_width" -lt "$min_width" ]; do
@@ -149,9 +155,16 @@ if [ "$TOOL_NAME" = "pipe" ]; then
         bash "${sub}/pipe.sh" "${sample_file}" "${sample_id}" "${log_file}" "${mode_dir}"
     }
 
-    # Mode 1: nap pipe <sample_table.tsv> OR nap pipe <sample_table.tsv> <output_directory>
-    if is_table_input "$1"; then
+    input_type=$(get_input_type "$1")
+
+    # Mode 1: table input
+    if [ "$input_type" = "table" ]; then
         input_table="$1"
+
+        if [ ! -f "$input_table" ]; then
+            echo "${er}ERROR:${in} Table file not found: ${input_table} ${r}"
+            exit 1
+        fi
 
         if [ $# -eq 1 ]; then
             table_out_dir="0"
@@ -191,18 +204,31 @@ if [ "$TOOL_NAME" = "pipe" ]; then
             run_pipe_sample "$sample_file" "$sample_id" "$table_out_dir"
         done < "$input_table"
 
-    # Mode 2: nap pipe <path> <sample_name> <path2> <sample_name2> ...
-    else
+    # Mode 2: direct fastq input
+    elif [ "$input_type" = "fastq" ]; then
         if [ $(( $# % 2 )) -ne 0 ]; then
-            echo "${er}ERROR:${in} Invalid format. Use path/sample_name pairs, or a table file ${r}"
+            echo "${er}ERROR:${in} Invalid format. Use path/sample_name pairs for FASTQ input ${r}"
             exit 1
         fi
         while [ $# -ge 2 ]; do
             sample_file="$1"
             sample_id="$2"
+            case "$sample_file" in
+                *.fastq|*.fastq.gz|*.fq|*.fq.gz) ;;
+                *)
+                    echo "${er}ERROR:${in} Unsupported input file for direct mode: ${sample_file} ${r}"
+                    echo "${in}Direct mode accepts .fastq, .fastq.gz, .fq, or .fq.gz files only ${r}"
+                    exit 1
+                    ;;
+            esac
+            
             run_pipe_sample "$sample_file" "$sample_id" "0"
             shift 2
         done
+    else
+        echo "${er}ERROR:${in} Unsupported input type: $1 ${r}"
+        echo "${in}Accepted inputs are .tsv, .fastq, .fastq.gz, .fq, or .fq.gz ${r}"
+        exit 1
     fi
     echo -e "${in}Log file created: ${log_file} ${r}"
 fi
