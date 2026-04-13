@@ -12,10 +12,10 @@ input_count=$(grep -c '^@' "${raw_data}")
 if [ -z "$output_dir" ] || [ "$output_dir" = "0" ]; then
     current_dir=$(pwd)
 else
-    if [ ! -d "$output_dir" ]; then
-        echo "${er}ERROR:${in} Output directory does not exist: ${output_dir} ${r}"
+    mkdir -p "$output_dir" 2>/dev/null || {
+        echo "${er}ERROR:${in} Failed to create output directory: ${output_dir} ${r}"
         exit 1
-    fi
+    }
     current_dir=$(cd "$output_dir" 2>/dev/null && pwd)
     if [ -z "$current_dir" ]; then
         echo "${er}ERROR:${in} Invalid output directory: ${output_dir} ${r}"
