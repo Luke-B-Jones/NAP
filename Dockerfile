@@ -41,6 +41,7 @@ COPY . /opt/NAP
 
 RUN chmod +x /opt/NAP/build.sh && \
     chmod +x /opt/NAP/scripts/*.sh && \
+    chmod +x /opt/NAP/subconfigs/*.sh && \
     conda env create -n nap_env -f /opt/NAP/environment.yaml && \
     /bin/bash -lc "source ${CONDA_DIR}/etc/profile.d/conda.sh && \
     conda activate nap_env && \
@@ -48,9 +49,33 @@ RUN chmod +x /opt/NAP/build.sh && \
     ./build.sh && \
     ./nap update-database SILVA_138.2_SSU_NR99" && \
     ln -sf /opt/NAP/nap /usr/local/bin/nap && \
+    ln -sf /opt/conda/envs/nap_env/bin/python /usr/local/bin/python && \
+    ln -sf /opt/conda/envs/nap_env/bin/python3 /usr/local/bin/python3 && \
     mkdir -p /workspace && \
     conda clean -afy
 
-WORKDIR /workspace
+# Create a normal default runtime user (UID/GID 1000 suits most Linux desktops)
+RUN groupadd -g 1000 napuser && \
+    useradd -m -u 1000 -g 1000 -s /bin/bash napuser && \
+    mkdir -p /home/napuser && \
+    chown -R napuser:napuser /home/napuser /workspace
 
+# Auto-activate conda for interactive shells for all users
+RUN echo '. /opt/conda/etc/profile.d/conda.sh' >> /etc/bash.bashrc && \
+    echo 'conda activate nap_env' >> /etc/bash.bashrc
+
+# Inline entrypoint so no extra file is needed
+RUN printf '%s\n' \
+'#!/bin/bash' \
+'set -e' \
+'source /opt/conda/etc/profile.d/conda.sh' \
+'conda activate nap_env' \
+'exec "$@"' \
+> /usr/local/bin/docker-entrypoint.sh && \
+    chmod +x /usr/local/bin/docker-entrypoint.sh
+
+WORKDIR /workspace
+USER napuser
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["bash"]
