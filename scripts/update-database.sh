@@ -4,10 +4,9 @@ source config.sh
 # Capture variables, and display
 prefix=$1
 ex_type=$2
-filter="mammalian_microbiome_inclusive"
 if [ -z "$1" ]; then
     echo "${er}ERROR:${in} please provide prefix to match fasta (which must be in /databases/) ${r}"
-    exit 0
+    exit 1
 fi
 filter_path="${w_d}/bin/scripts/${filter}.sh"
 input="${w_d}/bin/databases/${prefix}.fasta"
@@ -64,8 +63,7 @@ update_config() {
 update_config "fasta_16s_database" "${database_dir}16s_${prefix}.fasta"
 update_config "fasta_18s_database" "${database_dir}18s_${prefix}.fasta"
 update_config "fasta_filtered_database" "${database_dir}filtered_${prefix}.fasta"
-update_config "blastn_16s_database" "${database_dir}16s_${prefix}"
-update_config "blastn_18s_database" "${database_dir}18s_${prefix}"
+
 
 # Identify database version, and update config is needed
 prefix_version=$(echo "$prefix" | grep -oP '\d+\.\d+')
@@ -83,14 +81,11 @@ check_and_delete() {
 }
 # Blastn 16S
 echo "   
-    ${in}Blastn 16S database construction: ${r}"
-check_and_delete "${database_dir}16s_${prefix}"
-makeblastdb -in "${database_dir}16s_${prefix}.fasta" -dbtype nucl -out "${database_dir}16s_${prefix}" -title "SILVA_16S_${prefix}"
+    ${in}Blastn 16S+18S database construction: ${r}"
+#  Merge final databases and make blastn database
+makeblastdb -in "${database_dir}filtered_${prefix}.fasta" -dbtype nucl -out "${database_dir}filtered_${prefix}" -title "SILVA_${prefix}"
+# Update contig
+update_config "blastn_database" "${database_dir}filtered_${prefix}"
 
-# Blastn 18S
-echo "   ${in}Blastn 18S database construction: ${r}"
-check_and_delete "${database_dir}18s_${prefix}.fasta"
-makeblastdb -in "${database_dir}18s_${prefix}.fasta" -dbtype nucl -out "${database_dir}18s_${prefix}" -title "SILVA_18S_${prefix}"
-
-conda deactivate
 echo "${su}${B}(5) DONE!${r}"
+
