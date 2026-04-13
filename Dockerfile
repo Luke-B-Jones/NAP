@@ -6,12 +6,13 @@ ENV PATH=${CONDA_DIR}/bin:${CONDA_DIR}/envs/nap_env/bin:/usr/local/bin:${PATH}
 
 ARG TARGETARCH
 
-# Light Linux base
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
     ca-certificates \
     curl \
     git \
+    wget \
+    gzip \
     bzip2 \
     procps \
     coreutils \
@@ -19,9 +20,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gawk \
     grep \
     sed \
+    bc \
+    ncurses-bin \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Miniforge (gives a proper conda install, but stays fairly light)
 RUN case "${TARGETARCH}" in \
         "amd64") CONDA_ARCH="x86_64" ;; \
         "arm64") CONDA_ARCH="aarch64" ;; \
@@ -33,23 +35,21 @@ RUN case "${TARGETARCH}" in \
     conda config --system --set auto_activate_base false && \
     conda clean -afy
 
-# Copy the NAP repo into the image
 WORKDIR /opt/NAP
 COPY . /opt/NAP
 
-# Set up NAP, create nap_env, and expose nap on PATH
-RUN chmod +x /opt/NAP/build.sh /opt/NAP/nap && \
-    find /opt/NAP/bin/scripts -type f -name "*.sh" -exec chmod +x {} \; && \
-    /bin/bash /opt/NAP/build.sh && \
+RUN chmod +x /opt/NAP/build.sh && \
+    chmod +x /opt/NAP/scripts/*.sh && \
     conda env create -n nap_env -f /opt/NAP/environment.yaml && \
-    conda clean -afy && \
-    ln -sf /opt/NAP/nap /usr/local/bin/nap && \
-    mkdir -p /workspace /opt/NAP/bin/logs /opt/NAP/bin/databases && \
+    /bin/bash -lc "source ${CONDA_DIR}/etc/profile.d/conda.sh && conda activate nap_env && /opt/NAP/build.sh" && \
+    ln -sf /opt/NAP/scripts/nap.sh /usr/local/bin/nap && \
+    mkdir -p /workspace /opt/NAP/logs && \
     chmod -R a+rX /opt/NAP && \
-    chmod -R a+rwX /workspace /opt/NAP/bin/logs /opt/NAP/bin/databases
+    chmod -R a+rwX /workspace /opt/NAP/logs && \
+    echo '. /opt/conda/etc/profile.d/conda.sh' >> /root/.bashrc && \
+    echo 'conda activate nap_env' >> /root/.bashrc && \
+    conda clean -afy
 
-# Host-mounted working area
 WORKDIR /workspace
 
-# Default to an interactive shell
 CMD ["bash"]
