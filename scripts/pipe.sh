@@ -6,8 +6,22 @@ source config.sh
 raw_data="$1"  # The first argument is the input file path
 id="$2"        # The second argument is the sample ID
 log="$3"       # The third argument is the log file name
+output_dir="$4" # The fourth argument controls output directory
 input_count=$(grep -c '^@' "${raw_data}")
-current_dir=$(pwd)
+# Determine working/output directory
+if [ -z "$output_dir" ] || [ "$output_dir" = "0" ]; then
+    current_dir=$(pwd)
+else
+    if [ ! -d "$output_dir" ]; then
+        echo "${er}ERROR:${in} Output directory does not exist: ${output_dir} ${r}"
+        exit 1
+    fi
+    current_dir=$(cd "$output_dir" 2>/dev/null && pwd)
+    if [ -z "$current_dir" ]; then
+        echo "${er}ERROR:${in} Invalid output directory: ${output_dir} ${r}"
+        exit 1
+    fi
+fi
 # Append a separator to the log file
 echo -e "///////////////////////////////////////////////////////////////////////////////////////////" >> "${log}"
 mkdir -p "./${id}" # Create a directory for the sample ID
