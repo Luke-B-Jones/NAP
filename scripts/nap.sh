@@ -103,8 +103,7 @@ if [ "$TOOL_NAME" = "pipe" ]; then
     # Check input exists
     if [ $# -lt 1 ]; then
         echo "${in}Format:${r} nap pipe <path/to/sample.fastq> <sample_name> ... ${r}"
-        echo "${in}   or:${r} nap pipe <sample_table.tsv> ${r}"
-        echo "${in}   or:${r} nap pipe <sample_table.tsv> <output_directory> ${r}"
+        echo "${in}    or:${r} nap pipe <sample_table.tsv> ${r}"
         display_help
         exit 1
     fi
