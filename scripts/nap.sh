@@ -30,8 +30,9 @@ fi
 # PIPE
 if [[ "$1" == "pipe" ]]; then
     if [[ "$2" == "-h" || "$2" == "--help" ]]; then
-        echo "${er} Usage:${in} nap pipe <barcode_number> <sample_name>...... ${r}
-        (1)${in} Be in the same directory as your ./raw-data/ ${r}"
+        echo "${er} Usage:${in} nap pipe <path/to/sample.fastq> <sample_name> ... ${r}"
+        echo "${in}        nap pipe <sample_table.tsv> ${r}"
+        echo "${in} Table format:${r} column 1 = full fastq path, column 2 = sample name (tab separated), no header row ${r}"
         exit 0
     fi
 fi
@@ -95,52 +96,88 @@ shift
 if [ "$TOOL_NAME" = "update-database" ]; then
   bash "${sub}/update-database.sh" "$1" "1"
 fi
-# Script to run 'nap pipe' for each sample given and export variable
+
+
+# Script to run 'nap pipe'
 if [ "$TOOL_NAME" = "pipe" ]; then
-    # Check if there are sufficient arguments for sample processing
-    if [ $# -lt 2 ]; then
-        echo "${in}Format: nap pipe <01> <corresponding_sample_id_1> <02> <corresponding_sample_id_2> ... ${r} "
+    # Check input exists
+    if [ $# -lt 1 ]; then
+        echo "${in}Format:${r} nap pipe <path/to/sample.fastq> <sample_name> ... ${r}"
+        echo "${in}   or:${r} nap pipe <sample_table.tsv> ${r}"
         display_help
         exit 1
     fi
-
     # Prepare log file
     log_file="${w_d}/bin/logs/$(date +'%Y%m%d_%H-%M-%S')_pipe_log.txt"
     echo "Date: $(date)" > "$log_file"
-    echo -e "\nSample ID\tBarcode\tFile Location" >> "$log_file"
-    # Run nap pipe for each file sequentially
-    while [ $# -ge 2 ]; do
-        barcode="$1"
+    echo -e "\nSample ID\tFile Location" >> "$log_file"
+    # Function to run one sample
+    run_pipe_sample() {
+        sample_file="$1"
         sample_id="$2"
-        sample_file=$(find ${cd}/raw_data -name "*${barcode}.fastq" -type f -print -quit)
-
-        if [ -n "$sample_file" ]; then
-            # Pass the log file path as the third argument to pipe.sh
-            echo -e "${sample_id}\t${barcode}\t${sample_file}" >> "$log_file"
-            # Check temrinal size to prevent issues with progres bar
-            min_width=150
-            current_width=$(tput cols)
-            if [ "$current_width" -lt "$min_width" ]; then
-              echo "${er}WARNING:${in} resize your terminal to at least $min_width ($current_width current) columns for proper display"
-              while [ "$current_width" -lt "$min_width" ]; do
-                read -p "Press Enter after resizing your terminal..." # Wait for user to resize
-                  current_width=$(tput cols) # Re-check the width
-                if [ "$current_width" -lt "$min_width" ]; then
-                  echo "${er}ERROR:${in} Terminal is $current_width, must be >$min_width"
-                fi
-              done
-        fi
-            bash "${sub}/pipe.sh" "${sample_file}" "${sample_id}" "${log_file}"
-        else
-            echo "${er}ERROR: ${in}File for barcode ${cd}/raw_data/*${barcode}.fastq not found ${r}"
-            display_help
+        if [ ! -f "$sample_file" ]; then
+            echo "${er}ERROR:${in} Input file not found: ${sample_file} ${r}"
             exit 1
         fi
+        echo -e "${sample_id}\t${sample_file}" >> "$log_file"
+        # Check temrinal size to prevent issues with progres bar
+        min_width=150
+        current_width=$(tput cols)
+        if [ "$current_width" -lt "$min_width" ]; then
+            echo "${er}WARNING:${in} resize your terminal to at least $min_width ($current_width current) columns for proper display"
+            while [ "$current_width" -lt "$min_width" ]; do
+                read -p "Press Enter after resizing your terminal..."
+                current_width=$(tput cols)
+                if [ "$current_width" -lt "$min_width" ]; then
+                    echo "${er}ERROR:${in} Terminal is $current_width, must be >$min_width"
+                fi
+            done
+        fi
 
-        shift 2
-    done
+        bash "${sub}/pipe.sh" "${sample_file}" "${sample_id}" "${log_file}"
+    }
+    # Mode 1: nap pipe <table.tsv>
+    if [ $# -eq 1 ] && [ -f "$1" ]; then
+        input_table="$1"
+        while IFS=$'\t' read -r sample_file sample_id extra || [ -n "$sample_file" ]; do
+            # Skip empty lines and comments
+            if [ -z "$sample_file" ]; then
+                continue
+            fi
+            if [[ "$sample_file" =~ ^# ]]; then
+                continue
+            fi
+            # Skip simple header row if present
+            lower_file=$(echo "$sample_file" | tr '[:upper:]' '[:lower:]')
+            lower_id=$(echo "$sample_id" | tr '[:upper:]' '[:lower:]')
+            if [[ "$lower_file" == "path" || "$lower_file" == "read_path" || "$lower_file" == "file" || "$lower_file" == "file_path" ]]; then
+                if [[ "$lower_id" == "sample" || "$lower_id" == "sample_name" || "$lower_id" == "sample_id" ]]; then
+                    continue
+                fi
+            fi
+            if [ -z "$sample_id" ]; then
+                echo "${er}ERROR:${in} Invalid table format in ${input_table}. Use tab-separated: <full_path><TAB><sample_name> ${r}"
+                exit 1
+            fi
+            run_pipe_sample "$sample_file" "$sample_id"
+        done < "$input_table"
+
+    # Mode 2: nap pipe <path> <sample_name> <path2> <sample_name2> ...
+    else
+        if [ $(( $# % 2 )) -ne 0 ]; then
+            echo "${er}ERROR:${in} Invalid format. Use path/sample_name pairs, or a single table file ${r}"
+            exit 1
+        fi
+        while [ $# -ge 2 ]; do
+            sample_file="$1"
+            sample_id="$2"
+            run_pipe_sample "$sample_file" "$sample_id"
+            shift 2
+        done
+    fi
     echo -e "${in}Log file created: ${log_file} ${r}"
 fi
+
 
 
 
