@@ -34,7 +34,7 @@ nap_activate /home/luke/Documents/data
 ---
 
 ## **How to use**
-# *basal use*
+### *basal use*
 
 Data is ran through the pipeline using `nap pipe`, to which data in two ways
 
