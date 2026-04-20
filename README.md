@@ -34,6 +34,7 @@ nap_activate /home/luke/Documents/data
 ---
 
 ## **How to use**
+# *basal use*
 
 Data is ran through the pipeline using `nap pipe`, to which data in two ways
 
@@ -54,7 +55,7 @@ nap pipe /path/table.tsv
 /home/luke/Documents/data/ARCHIVE/rat_project/CO/raw_data/80793809db7ab12ecb5727975f1307826551ee7e_SQK-NBD114-24_barcode13.fastq	test-1	/home/luke/Documents/data/ARCHIVE/rat_project/TEST-1
 /home/luke/Documents/data/ARCHIVE/rat_project/CO/raw_data/80793809db7ab12ecb5727975f1307826551ee7e_SQK-NBD114-24_barcode15.fastq	test-2	/home/luke/Documents/data/ARCHIVE/rat_project/TEST-2
 ```
-# *decontamination*
+## **decontamination**
 If you run `nap pipe` before setting up decontamination, samples will simply skip decontamination step without flagging in terminal.
 
 To setup decontamination you must first identify contaminatants. You have two options:
@@ -153,31 +154,6 @@ Users should follow the template and guidance in:
 ```
 subconfigs/AMP_template.sh
 ```
-
----
-
-### **3. Using non-barcoded raw data**
-
-Inside the `nap` wrapper (around line 99), the script extracts the path of a barcoded dataset  
-based on the numeric identifier supplied on the command line.
-
-Example:
-
-```
-nap pipe 14 S1
-```
-
-This instructs the pipeline to use:
-
-```
-./raw_data/*barcode14.fastq
-```
-
-as the raw input for sample `S1`.
-
-Users with differently named raw data may safely modify this part of the wrapper.
-
----
 
 ## **Thanks to**
 
