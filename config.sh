@@ -38,7 +38,7 @@ export decontamination_factor="0.9"         # Factor used to decontaminate (1=1:
 export subconfig="${w_d}/bin/subconfigs"
 # Pipeline info 2
 export pipeline_name="Nanopore_amplicon_pipeline"
-export pipeline_version="1.0.0-alpha"
+export pipeline_version="1.0.0"
 export w_d=""
 # Python
 export progress_monitor="${w_d}/bin/scripts/progress_monitor.py"             # In terminal progress bar
