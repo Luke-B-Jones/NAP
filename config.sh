@@ -39,7 +39,7 @@ export subconfig="${w_d}/bin/subconfigs"
 # Pipeline info 2
 export pipeline_name="Nanopore_amplicon_pipeline"
 export pipeline_version="1.0.0-alpha"
-export w_d="/home/luke/Documents/tools/NAP"
+export w_d=""
 # Python
 export progress_monitor="${w_d}/bin/scripts/progress_monitor.py"             # In terminal progress bar
 export normalise="${w_d}/bin/scripts/normalise.py"                           # TSS normalisation
