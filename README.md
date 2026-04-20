@@ -34,7 +34,7 @@ nap_activate /home/luke/Documents/data
 ---
 
 ## **How to use**
-### *basal use*
+### *Basal use*
 
 Data is ran through the pipeline using `nap pipe`, to which data in two ways
 
@@ -55,7 +55,7 @@ nap pipe /path/table.tsv
 /home/luke/Documents/data/ARCHIVE/rat_project/CO/raw_data/80793809db7ab12ecb5727975f1307826551ee7e_SQK-NBD114-24_barcode13.fastq	test-1	/home/luke/Documents/data/ARCHIVE/rat_project/TEST-1
 /home/luke/Documents/data/ARCHIVE/rat_project/CO/raw_data/80793809db7ab12ecb5727975f1307826551ee7e_SQK-NBD114-24_barcode15.fastq	test-2	/home/luke/Documents/data/ARCHIVE/rat_project/TEST-2
 ```
-## **decontamination**
+## **Decontamination**
 If you run `nap pipe` before setting up decontamination, samples will simply skip decontamination step without flagging in terminal.
 
 To setup decontamination you must first identify contaminatants. You have two options:
